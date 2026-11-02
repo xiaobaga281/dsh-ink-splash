@@ -1,0 +1,410 @@
+/* dsh-ink-splash — the single stylesheet, authored once and injected into the
+ * served index by the Host half (webserver/index-inject), so the ink exists at
+ * first paint rather than when the plugin chunk is finally evaluated.
+ *
+ * Placeholders the Host substitutes:
+ *   {{EXIT}}  fade-out length in ms
+ *   {{CLOCK}} prelude clock length in ms (the nominal duration the user set)
+ *
+ * Nothing on screen reads the master property any more: every mover is a keyframe
+ * animation of transform or opacity, so the compositor carries the whole stroke while
+ * the main thread is busy booting the application. `--dsh-ink-p` is still animated on
+ * the root for two jobs only — it is the timeline the takeover measures against, and
+ * its `animationend` is the authoritative "the ink is finished" signal.
+ */
+
+@property --dsh-ink-p { syntax: '<number>'; inherits: true; initial-value: 0; }
+/* Where the brush is, in one place. The letters' mask edge and the ink dot's own position
+ * both read this, so the dot cannot drift off the stroke it is supposed to be painting —
+ * which is the whole defect class the paper blind belonged to. */
+@property --dsh-ink-spread { syntax: '<number>'; inherits: true; initial-value: 0; }
+
+/* On screen from the first painted frame: the kernel builds its own boot page
+   later, from the shell module, so gating on its presence would hide the ink
+   exactly during the interval this exists to cover. Nothing traps the user
+   either — the prelude removes itself if nobody takes over in time. */
+.dsh-ink-root { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; pointer-events: none; background: var(--dsh-ink-paper);
+	--dsh-ink-dir: 90deg; --s1: 0%; --s2: 15%; --dsh-ink-dur: {{CLOCK}}ms; --dsh-ink-tilt: 1.6deg; }
+
+/* Once the plugin owns the frame it is a gate, not a decoration: the stroke
+ * must finish before the application underneath can be clicked. The
+ * pre-roll stays transparent to input so a failed takeover can never
+ * lock the window. */
+.dsh-ink-root[data-takeover] { pointer-events: auto; }
+
+.dsh-ink-root[data-theme=light] {
+	--dsh-ink-paper: #efeade;
+	--dsh-ink-grad: linear-gradient(96deg, #0c0d10 0 42%, #22242a 76%, #3b3d44 100%);
+	--dsh-ink-haloc: rgb(24 26 30 / 9%);
+	--dsh-ink-frontc: rgb(20 22 26 / 20%);
+	--dsh-ink-mistc: rgb(255 253 246 / 46%);
+	--dsh-ink-washo: .42;
+	--dsh-ink-sealx: 20%;
+	--dsh-ink-sealy: 33%;
+	--dsh-ink-solid: #14161a;
+	--dsh-ink-markglow: rgb(24 26 30 / 18%);
+}
+.dsh-ink-root[data-theme=dark] {
+	--dsh-ink-paper: #15161b;
+	--dsh-ink-grad: linear-gradient(96deg, #fbfbfc 0 42%, #c9ccd2 78%, #a8acb4 100%);
+	--dsh-ink-haloc: rgb(226 230 238 / 13%);
+	--dsh-ink-frontc: rgb(232 236 244 / 26%);
+	--dsh-ink-mistc: rgb(196 204 216 / 12%);
+	--dsh-ink-washo: .5;
+	--dsh-ink-sealx: 24.5%;
+	--dsh-ink-sealy: 26%;
+	--dsh-ink-solid: #f4f3f0;
+	--dsh-ink-markglow: rgb(226 232 244 / 26%);
+}
+.dsh-ink-root[data-art=whale] { --dsh-ink-sealx: -27%; --dsh-ink-sealy: 31%; }
+
+.dsh-ink-paint { position: absolute; inset: 0; background: var(--dsh-ink-paper); }
+.dsh-ink-paint.is-out { animation: dsh-ink-out {{EXIT}}ms ease-in forwards; }
+@keyframes dsh-ink-out { to { opacity: 0; transform: scale(1.03); } }
+
+/* The clock is the master timeline and it is linear on purpose: an eased curve
+ * would travel faster than nominal in its middle, which is the fast-forward this
+ * whole model exists to prevent. It runs on the root, so taking over the frame
+ * cannot stop it, and every mover below is timed against it. A rAF loop is what
+ * used to produce the stroke; measured on boot the app gave that loop 21 frames
+ * in 1.9s, and 21 frames is what the picture could show. */
+.dsh-ink-root { animation: dsh-ink-clock var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both; }
+@keyframes dsh-ink-clock { from { --dsh-ink-p: 0; } to { --dsh-ink-p: 1; } }
+
+.dsh-ink-lay { position: absolute; inset: 0; background-size: cover; background-position: center; background-image: var(--dsh-ink-bg); }
+.dsh-ink-word, .dsh-ink-grain { position: absolute; inset: 0; }
+/* The two views live on their own. The far one is a *pre-blurred thumbnail*, not a
+ * runtime filter: nothing re-rasterises a full-window layer while the main thread
+ * loads plugins. The near view slides into place behind the front, so the
+ * background moves with the stroke instead of standing still under it. */
+/* The two views live on their own: the far wash comes up and settles, the near
+ * scene slides into place behind the front. Both are transform/opacity keyframes
+ * and both are promoted up front — an unpromoted full-window layer gets rasterised
+ * the moment the reveal edge reaches it, which is the stall in the middle of the
+ * stroke, when the biggest area is still cold. */
+.dsh-ink-wash {
+	background-image: var(--dsh-ink-bgw);
+	animation: dsh-ink-washin calc(var(--dsh-ink-dur) * .3846) linear both;
+	will-change: transform, opacity;
+}
+@keyframes dsh-ink-washin { from { opacity: 0; transform: scale(1.09); } to { opacity: var(--dsh-ink-washo); transform: scale(1.03); } }
+.dsh-ink-scene {
+	animation: dsh-ink-scene-x calc(var(--dsh-ink-dur) * .526) linear calc(var(--dsh-ink-dur) * .06) both;
+	will-change: transform, opacity;
+}
+/* The background is the user's clip. It sits *inside* the scene, above the still that
+ * `--dsh-ink-bg` paints, and is only faded in once the element reports `playing` — so a
+ * machine that cannot decode it keeps the picture instead of a black rectangle. The ramp
+ * is opacity on the child, never a filter: a runtime blur over a full-window layer
+ * re-rasterises during the one moment the main thread is busiest. */
+.dsh-ink-movie {
+	position: absolute; inset: 0;
+	display: block; width: 100%; height: 100%;
+	object-fit: cover; object-position: center;
+	opacity: 0;
+	transition: opacity calc(var(--dsh-ink-dur) * .1) linear;
+	pointer-events: none;
+}
+.dsh-ink-root[data-movie="playing"] .dsh-ink-movie { opacity: 1; }
+/* The clip ran out and no mover was available to take the tail. Dissolve onto the shipped
+ * still — the same painting — rather than looping the opening animation, which is not a
+ * thing an opening animation should do. */
+.dsh-ink-root[data-tail="still"] .dsh-ink-movie { opacity: 0; }
+@media (prefers-reduced-motion: reduce) {
+	.dsh-ink-movie { display: none; }
+}
+/* The whole splash as one file. When the axes have a film, this layer is the animation:
+ * the breathing mark, the dot, the stroke and the blooming painting were all rendered once
+ * and are now decoded, so the boot pays a video frame instead of a dozen choreographed
+ * layers — no clock to hold, no mask to re-rasterise, nothing to fall out of step between a
+ * replay and a real start. The live layers are hidden, not unmounted: an axis with no film,
+ * or a decode this machine refuses, has to be one attribute away from the picture below. */
+.dsh-ink-film {
+	position: absolute; inset: 0;
+	display: block; width: 100%; height: 100%;
+	object-fit: cover; object-position: center;
+	background: var(--dsh-ink-paper);
+}
+/* The live layers are the children of the paint, and so is the film — hiding from the root
+ * would take the film out with them, which is what the first version of this rule did while
+ * every gate on its wording stayed green. */
+.dsh-ink-root[data-splash=film] .dsh-ink-paint > :not(.dsh-ink-film) { display: none; }
+/* 没有影片的轴（例如 wet/sweep、rise）也必须把这个元素藏起来。
+ *
+ * 影片层是无条件写进 MARKUP 的 `<video>`，并且自带 `background: var(--dsh-ink-paper)`
+ * （不透明纸色）。有影片时 `[data-splash=film]` 会把 live 层 display:none，问题看不见；
+ * 一旦这组轴没有影片，`data-splash` 被删掉，这个空 video 就作为**最后一个子元素**
+ * 用纸色盖住了 wash / scene / 字标 / 鲸鱼 / 印章全部 live 层——只剩 z-index:2 的
+ * `.dsh-ink-prog` 露在外面，于是屏幕上只有黑底 + 进度条，声音照响。
+ *
+ * 2026-10-18 真机与 headless 双向复现：把 `.dsh-ink-film` 置 display:none 后同一帧
+ * 立刻出现完整山水 + DeepSeek 字标 + 鲸鱼 + 落印。判据只有一条：不画影片就不许有
+ * 影片层。 */
+.dsh-ink-root:not([data-splash=film]) .dsh-ink-film { display: none; }
+@media (prefers-reduced-motion: reduce) {
+	.dsh-ink-film { display: none; }
+	/* With the film off, the frame is the finished painting — which is what the live layers
+	 * already say at --dsh-ink-p: 1, so they come back rather than leave a blank paper. */
+	.dsh-ink-root[data-splash=film] { --dsh-ink-p: 1; }
+	.dsh-ink-root[data-splash=film] .dsh-ink-paint > :not(.dsh-ink-film) { display: block; }
+}
+@keyframes dsh-ink-scene-x { from { opacity: 0; transform: translateX(-1.2%); } to { opacity: 1; transform: translateX(0); } }
+@keyframes dsh-ink-scene-y { from { opacity: 0; transform: translateY(4.5%); } to { opacity: 1; transform: translateY(0); } }
+
+/* The engine's own layer. The wrapper carries the scene's entrance so the canvas registers
+ * with the reveal; the canvas inside carries the ramp opacity, which the engine writes from
+ * JS — kept on separate elements on purpose, because an animation on `opacity` would win
+ * over the inline ramp and the swap-in would stop being invisible. */
+.dsh-ink-warp {
+	position: absolute; inset: 0;
+	will-change: transform, opacity;
+	animation: dsh-ink-scene-x calc(var(--dsh-ink-dur) * .526) linear calc(var(--dsh-ink-dur) * .06) both;
+}
+.dsh-ink-root[data-bg=rise] .dsh-ink-warp { animation-name: dsh-ink-scene-y; }
+.dsh-ink-warp > canvas { display: block; width: 100%; height: 100%; opacity: 0; }
+
+/* The reveal is one paper curtain sliding off the painting: a transform is
+ * composited, so nothing repaints per frame. Animating mask-position on three
+ * full-window layers did, which is why the stroke looked smooth in a replay and
+ * broke up during boot, when the main thread is busy loading plugins.
+ * One curtain also means one front across the whole picture.
+ * --dsh-ink-dir carries the motion axis, --s1/--s2 the feather (brush axis),
+ * so the two axes never fight over the same declaration. */
+.dsh-ink-curtain {
+	position: absolute; top: -10%; left: 0; width: 100%; height: 120%;
+	background: linear-gradient(var(--dsh-ink-dir), transparent var(--s1), var(--dsh-ink-paper) var(--s2) 100%);
+	rotate: var(--dsh-ink-tilt);
+	animation: dsh-ink-sweep var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both;
+	will-change: transform;
+}
+@keyframes dsh-ink-sweep { from { transform: translateX(0); } to { transform: translateX(108%); } }
+.dsh-ink-halo { position: absolute; inset: 0; background: radial-gradient(58% 44% at 50% 43%, var(--dsh-ink-haloc) 0 40%, transparent 72%); animation: dsh-ink-halo calc(var(--dsh-ink-dur) * .4762) linear calc(var(--dsh-ink-dur) * .16) both; will-change: opacity; }
+/* The brush band rides the curtain edge: 26% of the window wide, its own centre
+ * starts at x=0, so +29% puts it on the mid-feather and 385% travels one window. */
+.dsh-ink-front { position: absolute; top: -8%; left: -13%; height: 116%; width: 26%; background: linear-gradient(90deg, transparent, var(--dsh-ink-frontc) 48%, transparent); rotate: var(--dsh-ink-tilt); animation: dsh-ink-front-x var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both; will-change: transform; }
+@keyframes dsh-ink-front-x { from { opacity: 0; transform: translateX(7.5vw); } 48% { opacity: 1; } to { opacity: 0; transform: translateX(107.5vw); } }
+/* 落印：`width: 4.4%` 之外必须给出高度，否则这个 div 的盒子是 56×0，背景图
+ * (`center/contain`) 没有可绘制的区域 —— 从 0.2.0 起这枚印章就一直没出现过。
+ * 用一个方盒 + contain 让它按印章自身比例落位（0.2.0/0.2.2 都是这一条缺高度）。
+ * 2026-10-18 headless 实测：补上 aspect-ratio 后 56×56，红色印章在 t=2200/2600 正常出现。 */
+.dsh-ink-seal { position: absolute; left: calc(50% + var(--dsh-ink-sealx)); top: calc(43% + var(--dsh-ink-sealy)); width: 4.4%; aspect-ratio: 1; background: var(--dsh-ink-sealimg) center/contain no-repeat; animation: dsh-ink-seal calc(var(--dsh-ink-dur) * .1334) linear calc(var(--dsh-ink-dur) * .84) both; will-change: transform, opacity; }
+@keyframes dsh-ink-halo { from { opacity: 0; } to { opacity: .85; } }
+@keyframes dsh-ink-halo-dry { from { opacity: 0; } to { opacity: .3; } }
+@keyframes dsh-ink-seal { from { opacity: 0; transform: translate(-50%, -50%) scale(1.55) rotate(-8deg); } to { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); } }
+
+/* Motion axis · 山起 — the curtain retreats upward, so the picture soaks in from the river mist. */
+.dsh-ink-root[data-bg=rise] { --dsh-ink-dir: 0deg; }
+.dsh-ink-root[data-bg=rise] .dsh-ink-scene { animation-name: dsh-ink-scene-y; }
+
+/* 退路 · the arm for a machine with no GPU path at all. It is not a degraded picture and
+ * it is not a guess about the user's hardware: it needs no context, no shader and no
+ * texture, only a transform on a promoted layer, which is the one animation every
+ * compositor can run off the main thread. It carries the scene's own entrance so it
+ * registers with the reveal, and it breathes through the independent `translate`/`scale`
+ * properties, which compose with that transform instead of fighting it. */
+.dsh-ink-drift {
+	position: absolute; inset: 0;
+	background-image: var(--dsh-ink-bg);
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: cover;
+	will-change: transform, opacity;
+	animation:
+		dsh-ink-scene-x calc(var(--dsh-ink-dur) * .526) linear calc(var(--dsh-ink-dur) * .06) both,
+		dsh-ink-breathe 11000ms ease-in-out 600ms infinite alternate;
+}
+.dsh-ink-root[data-bg=rise] .dsh-ink-drift { animation-name: dsh-ink-scene-y, dsh-ink-breathe; }
+@keyframes dsh-ink-breathe {
+	from { translate: 0 0; scale: 1; }
+	to { translate: -0.9% 0.45%; scale: 1.016; }
+}
+.dsh-ink-root[data-bg=rise] .dsh-ink-curtain { --dsh-ink-tilt: -1.3deg; animation-name: dsh-ink-rise; }
+@keyframes dsh-ink-rise { from { transform: translateY(0); } to { transform: translateY(-110%); } }
+.dsh-ink-root[data-bg=rise] .dsh-ink-front {
+	top: -8%; left: -8%; width: 116%; height: 17%;
+	background: linear-gradient(0deg, transparent, var(--dsh-ink-frontc) 46%, transparent);
+	animation-name: dsh-ink-front-y;
+}
+@keyframes dsh-ink-front-y { from { opacity: 0; transform: translateY(100.5vh); } 48% { opacity: 1; } to { opacity: 0; transform: translateY(-19.5vh); } }
+
+/* Motion axis · 生山 — the painting blooms outward from the wordmark. A radial reveal
+ * cannot be done with a slide, so this axis keeps per-frame mask sizing and therefore
+ * repaints: it is the expensive one, by name, not by surprise. What it must never do is
+ * run two clocks. The measured rollback was the mask — main thread, frozen solid through
+ * a 900 ms boot block — against the mountain's scale on the compositor, which kept
+ * travelling: when the block ended the revealed content sat somewhere else, and that is
+ * a step backwards. So the scene's growth and its fade hang off the same --q as its mask
+ * and the whole axis stops and resumes as one picture. */
+.dsh-ink-root[data-bg=bloom] .dsh-ink-curtain { display: none; }
+/* The mask must start *closed*. It used to read `calc(40% + var(--q) * 330%)`, whose
+ * floor is a 40 % disc centred exactly where the wordmark sits — so with 生山 the middle
+ * of "DeepSeek" was painted from the first frame and showed behind the whale before the
+ * brush ever moved. Same far stop (370 %), zero near stop. */
+.dsh-ink-root[data-bg=bloom] .dsh-ink-wash,
+.dsh-ink-root[data-bg=bloom] .dsh-ink-scene,
+.dsh-ink-root[data-bg=bloom] .dsh-ink-warp,
+.dsh-ink-root[data-bg=bloom] .dsh-ink-drift {
+	mask-repeat: no-repeat;
+	mask-image: radial-gradient(circle at 50% 43%, #000 0 24%, transparent 42%);
+	mask-size: calc(var(--q) * 370%) calc(var(--q) * 370%);
+	mask-position: center;
+}
+/* The wordmark is NOT in that list. It used to be, and that is the bug he is reporting:
+ * 生山 hides the paper curtain (`.dsh-ink-curtain { display: none }`) and the curtain is
+ * what the ink is written behind, so with the curtain gone the only reveal left for the
+ * letters was a whole-layer opacity ramp — DeepSeek faded in instead of being written, and
+ * there was no brush to see. A radial hole is not a stroke either.
+ *
+ * So the word comes out of the mark instead of being drawn across it. BOTH the spread and the
+ * mark read `--dsh-ink-p`, not a wall-clock animation: on a real boot the master clock is held
+ * while the application paints its first frame, a CSS animation is not held, and that pair is
+ * how the word came early on boot but on time in a replay.
+ *
+ * 鲸鱼边缘扩散 — his ruling this turn: 「还是别运笔了，改回原来的鲸鱼图标边缘扩散吧，别缩成墨点
+ * 了」. The silhouette expands off its own outline and thins out, and the same number drives a
+ * front growing outward from where the mark stands, so the letters arrive inside the
+ * diffusion. The travelling dot and the spine of round deposits that answered the previous
+ * request go with it. */
+.dsh-ink-root[data-bg=bloom] {
+	/* How far the ink has travelled from the mark, 0 → 1 across the stroke. */
+	--dsh-ink-spread: clamp(0, (var(--dsh-ink-p) - .10) / .72, 1);
+	/* The letters have their own front on the same clock, and it stays shut until the whale
+	 * is gone. His ruling 2026-10-17: 「鲸鱼图标还未完全消失 deepseek 字符就出现了」 — the mark
+	 * reaches opacity 0 at spread .45 (.40 of the clock), so the word's front starts at .52
+	 * and the two share no frame. Derived from the spread, not from --dsh-ink-p, so there is
+	 * still exactly one clock: the delayed mapping is the whole difference. */
+	--dsh-ink-wordspread: clamp(0, (var(--dsh-ink-spread) - .52) / .48, 1);
+}
+.dsh-ink-root[data-bg=bloom] .dsh-ink-word {
+	/* Both stop positions carry the front as a factor, so at 0 the mask is closed at the
+	 * centre too: a fixed feather would leave the middle of "DeepSeek" showing behind the
+	 * mark. The reach is in vw because the word's own half-width is — 31.5 vw of 宣纸,
+	 * 28.5 vw of 夜山 — and 34 vw clears both with the fade reaching 44. */
+	mask-image: radial-gradient(circle at 50% 43%, #000 0 calc(var(--dsh-ink-wordspread) * 34vw), transparent calc(var(--dsh-ink-wordspread) * 44vw));
+	mask-mode: alpha;
+	mask-repeat: no-repeat;
+	mask-position: center;
+	mask-size: 100% 100%;
+}
+.dsh-ink-root[data-bg=bloom] .dsh-ink-mark {
+	/* Transform and opacity only, and both a function of the same spread: the mark pushes out
+	 * past its own edge and thins as the ink reaches beyond it. 2.22 is the handoff: the mark
+	 * is gone at spread .45, before the word's front opens at .52 (see --dsh-ink-wordspread). */
+	opacity: clamp(0, 1 - var(--dsh-ink-spread) * 2.22, 1);
+	transform: translate(-50%, -50%) scale(calc(1 + var(--dsh-ink-spread) * .5));
+	animation: none;
+}
+.dsh-ink-root[data-bg=bloom] .dsh-ink-breathe {
+	/* The breath keeps its own term: the diffusion must not silence the waiting mark before it
+	 * starts moving, and the mark's own opacity does the fading from here up. */
+	opacity: calc(.7 + var(--dsh-ink-wave, 0) * .28);
+}
+.dsh-ink-root[data-bg=bloom] .dsh-ink-wash { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.85, 1); animation: none; opacity: calc(var(--q) * var(--dsh-ink-washo)); transform: scale(calc(1.09 - var(--q) * .06)); }
+.dsh-ink-root[data-bg=bloom] .dsh-ink-scene { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.7, 1); opacity: var(--q); transform: scale(calc(1.05 - var(--q) * .05)); }
+.dsh-ink-root[data-bg=bloom] .dsh-ink-warp { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.7, 1); animation: none; opacity: var(--q); transform: scale(calc(1.05 - var(--q) * .05)); }
+/* The drift layer keeps breathing under 生山: `animation: none` would freeze the whole
+ * list, and the entrance is not the ambience. Its own copy of the drift survives. */
+.dsh-ink-root[data-bg=bloom] .dsh-ink-drift { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.7, 1); animation: dsh-ink-breathe 11000ms ease-in-out infinite alternate; opacity: var(--q); transform: scale(calc(1.05 - var(--q) * .05)); }
+.dsh-ink-root[data-bg=bloom] .dsh-ink-front { display: none; }
+
+/* Brush axis · 湿墨 — the ink comes up through the paper: a wide wet bleed. */
+.dsh-ink-root[data-word=wet] { --s2: 24%; }
+.dsh-ink-letters { position: absolute; inset: 0; background: var(--dsh-ink-grad); mask-image: var(--dsh-ink-wm); mask-mode: luminance; mask-repeat: no-repeat; mask-position: 50% 43%; mask-size: var(--dsh-ink-wms); }
+/* The fade belongs on the unmasked ancestor: a mask keeps the element out of
+ * the compositor, so an opacity animation on the masked layer is a per-frame
+ * repaint of the whole window — exactly where the stroke used to stutter. */
+.dsh-ink-root[data-word=wet] .dsh-ink-word { animation: dsh-ink-wet calc(var(--dsh-ink-dur) * .6452) linear calc(var(--dsh-ink-dur) * .22) both; }
+@keyframes dsh-ink-wet { from { opacity: .25; } to { opacity: 1; } }
+
+/* Brush axis · 枯笔 — a crisper continuous front, dry streaks from the tile. */
+.dsh-ink-root[data-word=dry] { --s2: 6%; }
+.dsh-ink-root[data-word=dry] .dsh-ink-grain { mask-image: var(--dsh-ink-grainimg, url(/ink-splash/grain.png)); mask-mode: luminance; mask-size: 200px; mask-repeat: repeat; }
+.dsh-ink-root[data-word=dry] .dsh-ink-halo { animation-name: dsh-ink-halo-dry; }
+
+/* The waiting mark: the DeepSeek whale, cut out of the application's own icon and
+ * painted with the wordmark's gradient, so it is the same ink as the letters that will
+ * replace it. It sits above the curtain because the curtain is what covers everything
+ * else — the brush has not moved yet, and the paper is all there is to draw on. The
+ * breathing opacity lives on the unmasked ancestor: a mask keeps an element off the
+ * compositor, and an opacity animation on the masked layer would repaint the window. */
+.dsh-ink-mark { position: absolute; left: 50%; top: 43%; width: 17%; aspect-ratio: 753 / 554; transform: translate(-50%, -50%); animation: dsh-ink-mark-out calc(var(--dsh-ink-dur) * .25) linear calc(var(--dsh-ink-dur) * .08) both; will-change: opacity, transform; }
+.dsh-ink-breathe { position: absolute; inset: 0; opacity: calc(.7 + var(--dsh-ink-wave, 0) * .28); transition: opacity 120ms linear; }
+/* The breath is the whale's own light: seven copies of the same silhouette, each a step
+ * further out and a step fainter, so what diffuses is the animal's outline rather than a
+ * circle drawn behind it — one radial gradient read as a lens ring, which is not light
+ * coming off an edge. The stack is static, so it costs one paint; the breathing stays
+ * opacity and scale on this unmasked wrapper, and the transition is what makes it smooth:
+ * the compositor carries the motion between the integrator's 33 ms writes, so a blocked
+ * main thread slows the pulse instead of stepping it. */
+.dsh-ink-glow { position: absolute; inset: 0; opacity: calc(.5 + var(--dsh-ink-wave, 0) * .5); transform: scale(calc(.99 + var(--dsh-ink-wave, 0) * .06)); transition: opacity 120ms linear, transform 120ms linear; will-change: opacity, transform; }
+.dsh-ink-glow i { position: absolute; inset: 0; background: var(--dsh-ink-markglow); mask: center/100% 100% no-repeat url(/ink-splash/mark-mask.png); -webkit-mask: center/100% 100% no-repeat url(/ink-splash/mark-mask.png); }
+.dsh-ink-glow i:nth-child(1) { transform: scale(1.02); opacity: .42; }
+.dsh-ink-glow i:nth-child(2) { transform: scale(1.05); opacity: .35; }
+.dsh-ink-glow i:nth-child(3) { transform: scale(1.085); opacity: .29; }
+.dsh-ink-glow i:nth-child(4) { transform: scale(1.125); opacity: .23; }
+.dsh-ink-glow i:nth-child(5) { transform: scale(1.17); opacity: .18; }
+.dsh-ink-glow i:nth-child(6) { transform: scale(1.22); opacity: .13; }
+.dsh-ink-glow i:nth-child(7) { transform: scale(1.28); opacity: .09; }
+.dsh-ink-glow i:nth-child(8) { transform: scale(1.35); opacity: .055; }
+.dsh-ink-whale { position: absolute; inset: 0; background: var(--dsh-ink-grad); mask: center/100% 100% no-repeat url(/ink-splash/mark-mask.png); -webkit-mask: center/100% 100% no-repeat url(/ink-splash/mark-mask.png); }
+@keyframes dsh-ink-mark-out { from { opacity: 1; transform: translate(-50%, -50%) scale(1); } to { opacity: 0; transform: translate(-50%, -50%) scale(1.1); } }
+
+/* Mist: two slow bands, composited from plain gradients (no blur filter). */
+/* 生山 hides the paper curtain, so the mist — which that curtain keeps hidden until the
+ * stroke on the other two axes — is exposed from frame 0. On 夜山 that reads as a
+ * horizontal white band whose top edge sits exactly on the mark's bottom (`top: 52%`;
+ * his 19:4x report: 鲸鱼下边感觉有一条白带); on 宣纸 it is white haze on white paper and
+ * nobody ever saw it. So under bloom the haze waits: full width (masking it with the
+ * radial reveal turned the band into a light patch under the fading mark — his 20:0x
+ * report: 鲸鱼图标下边也有光斑), faded in by opacity only once the painting is up. The
+ * drift keeps running underneath; before this ramp opens there is nothing to see. */
+.dsh-ink-root[data-bg=bloom] .dsh-ink-m1 { opacity: calc(.5 * clamp(0, (var(--dsh-ink-p) - .55) / .25, 1)); }
+.dsh-ink-root[data-bg=bloom] .dsh-ink-m2 { opacity: calc(.42 * clamp(0, (var(--dsh-ink-p) - .62) / .25, 1)); }
+.dsh-ink-mist { position: absolute; left: -30%; width: 160%; height: 34%; background: linear-gradient(180deg, transparent, var(--dsh-ink-mistc) 46%, transparent); }
+.dsh-ink-m1 { top: 52%; opacity: .5; animation: dsh-ink-drift 21s linear infinite; }
+.dsh-ink-m2 { top: 70%; opacity: .42; animation: dsh-ink-drift 15s linear infinite reverse; }
+@keyframes dsh-ink-drift { to { transform: translateX(18%); } }
+
+/* Progress: the design's own shape — no track (the tip lands on bare paper), a
+   4px body of the ink gradient feathered 4%→88%, and an 8px wet bead. The SVG
+   wet filter from the mock is the one thing that cannot ship: a runtime filter
+   repaints the whole strip every frame, which is the cost this refactor removed. */
+.dsh-ink-prog { position: absolute; left: 50%; bottom: 8.5%; width: 20%; height: 8px; transform: translateX(-50%); z-index: 2; }
+.dsh-ink-prog i { position: absolute; left: 0; top: 2px; height: 4px; width: 100%; background: linear-gradient(90deg, transparent, var(--dsh-ink-solid) 4% 88%, transparent); transform-origin: left center; will-change: transform; animation: dsh-ink-draw var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both; }
+@keyframes dsh-ink-draw { from { transform: scaleX(0) scaleY(.7); } to { transform: scaleX(1) scaleY(1); } }
+/* The bead travels the track by a transform, not by `left`: the track is 20% of
+ * a fixed full-window root, so 20vw is its exact width without a measurement. */
+.dsh-ink-prog b { position: absolute; top: 0; left: 0; width: 8px; height: 8px; background: var(--dsh-ink-grad); border-radius: 50%; animation: dsh-ink-bead var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both; will-change: transform; }
+@keyframes dsh-ink-bead { from { opacity: 0; transform: translateX(-4px); } to { opacity: .72; transform: translateX(calc(20vw - 4px)); } }
+
+/* The Desktop caption bar is painted by the system above web content, but its
+ * fill is measured from this probe the app's own preload appends to body, and
+ * re-measured whenever head changes. Neutralising the probe's token makes the
+ * caption transparent so the buttons sit on the painting instead of on a bar.
+ * Scoped to the probe: the real sidebar keeps its own fill. */
+body > span[style*="--dsw-specific-sidebar-fill"] { --dsw-specific-sidebar-fill: transparent; }
+
+/* The one thing JS writes about motion: when the clock has travelled further
+ * than the app has actually loaded, freeze the whole picture. A paused animation
+ * resumes where it stopped instead of repaying the frozen time, so "画完才进、
+ * 不许倍速" is enforced by the timeline rather than by a loop that boot can starve. */
+.dsh-ink-root[data-hold], .dsh-ink-root[data-hold] :not(.dsh-ink-mist) { animation-play-state: paused; }
+
+@media (prefers-reduced-motion: reduce) {
+	.dsh-ink-root, .dsh-ink-root * { animation: none; }
+	.dsh-ink-root { --dsh-ink-p: 1; }
+	.dsh-ink-wash { opacity: var(--dsh-ink-washo); transform: scale(1.03); }
+	.dsh-ink-curtain { transform: translateX(108%); }
+	.dsh-ink-root[data-bg=rise] .dsh-ink-curtain { transform: translateY(-110%); }
+	.dsh-ink-front { opacity: 0; }
+	.dsh-ink-mark { opacity: 0; }
+	.dsh-ink-warp, .dsh-ink-drift { display: none; }
+	.dsh-ink-halo { opacity: .85; }
+	.dsh-ink-seal { opacity: 1; transform: translate(-50%, -50%); }
+	.dsh-ink-prog i { transform: scaleX(1); }
+	.dsh-ink-prog b { opacity: .72; transform: translateX(calc(20vw - 4px)); }
+	.dsh-ink-root[data-bg=bloom] .dsh-ink-wash,
+	.dsh-ink-root[data-bg=bloom] .dsh-ink-scene { --q: 1; }
+	/* Nothing to state for the mark or the word: both are functions of `--dsh-ink-spread`, and
+	 * the line above this block sets the clock to 1, which already means "written, mark gone". */
+}

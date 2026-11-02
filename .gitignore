@@ -1,0 +1,8 @@
+# Build artifacts and local junk
+*.tgz
+node_modules/
+release/
+logs/
+*.log
+.DS_Store
+Thumbs.db

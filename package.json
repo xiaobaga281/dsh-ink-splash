@@ -1,0 +1,57 @@
+{
+  "name": "dsh-ink-splash",
+  "version": "0.2.3",
+  "description": "Ink-wash splash animation for DeepSeek Harness — the DeepSeek wordmark is painted by a single ink front that also wakes the landscape behind it; three independent axes (brush / motion / artwork) chosen from a dedicated Settings sub-page · 水墨侠客风格开屏动画：一条墨锋同时驱动字标描绘与背景显影，字标/背景/画面三轴可在设置子页自由搭配",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./lib/client.js"
+    },
+    "./package.json": "./package.json",
+    "./cordis.patch.yml": "./cordis.patch.yml"
+  },
+  "files": [
+    "lib/index.js",
+    "lib/client.js",
+    "lib/inject.mjs",
+    "lib/range.mjs",
+    "lib/theme.js",
+    "lib/prelude.js",
+    "lib/ink.css",
+    "lib/ink-ui.css",
+    "cordis.patch.yml",
+    "assets"
+  ],
+  "license": "MIT",
+  "keywords": [
+    "deepseek",
+    "harness",
+    "dsh",
+    "dsh-plugin",
+    "splash",
+    "ink",
+    "animation"
+  ],
+  "peerDependencies": {
+    "@deepseek-ai/schemastery": "^3.18.1"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "immediately": true,
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-locale",
+        "@deepseek-ai/dsh-client-ui-settings",
+        "@deepseek-ai/dsh-client-ui-settings-general",
+        "@deepseek-ai/dsh-client-ui-primitives"
+      ]
+    }
+  }
+}
