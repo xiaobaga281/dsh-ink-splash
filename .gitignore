@@ -7,6 +7,8 @@ logs/
 .DS_Store
 Thumbs.db
 
-# Audition output — regenerate with tools/audition/render.mjs / spectrogram.mjs
-试听/*.wav
-tools/audition/shots/
+# Runtime receipts that lib/index.js writes into the package root. When this repo
+# is linked straight into the profile, the plugin boots from here and lands them
+# in this directory, so they have to stay out of the tree.
+.boot.json
+.injects.ndjson
