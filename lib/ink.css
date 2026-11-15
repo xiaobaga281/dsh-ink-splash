@@ -24,7 +24,7 @@
    exactly during the interval this exists to cover. Nothing traps the user
    either — the prelude removes itself if nobody takes over in time. */
 .dsh-ink-root { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; pointer-events: none; background: var(--dsh-ink-paper);
-	--dsh-ink-dir: 90deg; --s1: 0%; --s2: 15%; --dsh-ink-dur: {{CLOCK}}ms; --dsh-ink-tilt: 1.6deg; }
+	--dsh-ink-dir: 90deg; --s1: 0%; --s2: 15%; --dsh-ink-dur: {{CLOCK}}ms; --dsh-ink-tilt: 1.6deg; --dsh-ink-focus-y: 43%; }
 
 /* Once the plugin owns the frame it is a gate, not a decoration: the stroke
  * must finish before the application underneath can be clicked. The
@@ -33,6 +33,7 @@
 .dsh-ink-root[data-takeover] { pointer-events: auto; }
 
 .dsh-ink-root[data-theme=light] {
+	--dsh-ink-focus-y: 54%;
 	--dsh-ink-paper: #efeade;
 	--dsh-ink-grad: linear-gradient(96deg, #0c0d10 0 42%, #22242a 76%, #3b3d44 100%);
 	--dsh-ink-haloc: rgb(24 26 30 / 9%);
@@ -178,7 +179,7 @@
 	will-change: transform;
 }
 @keyframes dsh-ink-sweep { from { transform: translateX(0); } to { transform: translateX(108%); } }
-.dsh-ink-halo { position: absolute; inset: 0; background: radial-gradient(58% 44% at 50% 43%, var(--dsh-ink-haloc) 0 40%, transparent 72%); animation: dsh-ink-halo calc(var(--dsh-ink-dur) * .4762) linear calc(var(--dsh-ink-dur) * .16) both; will-change: opacity; }
+.dsh-ink-halo { position: absolute; inset: 0; background: radial-gradient(58% 44% at 50% var(--dsh-ink-focus-y), var(--dsh-ink-haloc) 0 40%, transparent 72%); animation: dsh-ink-halo calc(var(--dsh-ink-dur) * .4762) linear calc(var(--dsh-ink-dur) * .16) both; will-change: opacity; }
 /* The brush band rides the curtain edge: 26% of the window wide, its own centre
  * starts at x=0, so +29% puts it on the mid-feather and 385% travels one window. */
 .dsh-ink-front { position: absolute; top: -8%; left: -13%; height: 116%; width: 26%; background: linear-gradient(90deg, transparent, var(--dsh-ink-frontc) 48%, transparent); rotate: var(--dsh-ink-tilt); animation: dsh-ink-front-x var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both; will-change: transform; }
@@ -187,7 +188,7 @@
  * (`center/contain`) 没有可绘制的区域 —— 从 0.2.0 起这枚印章就一直没出现过。
  * 用一个方盒 + contain 让它按印章自身比例落位（0.2.0/0.2.2 都是这一条缺高度）。
  * 2026-10-18 headless 实测：补上 aspect-ratio 后 56×56，红色印章在 t=2200/2600 正常出现。 */
-.dsh-ink-seal { position: absolute; left: calc(50% + var(--dsh-ink-sealx)); top: calc(43% + var(--dsh-ink-sealy)); width: 4.4%; aspect-ratio: 1; background: var(--dsh-ink-sealimg) center/contain no-repeat; animation: dsh-ink-seal calc(var(--dsh-ink-dur) * .1334) linear calc(var(--dsh-ink-dur) * .84) both; will-change: transform, opacity; }
+.dsh-ink-seal { position: absolute; left: calc(50% + var(--dsh-ink-sealx)); top: calc(43% + var(--dsh-ink-sealy)); width: 4.4%; aspect-ratio: 1; background: var(--dsh-ink-sealimg) center/contain no-repeat; animation: dsh-ink-seal calc(var(--dsh-ink-dur) * .1334) cubic-bezier(.16,1,.3,1) calc(var(--dsh-ink-dur) * .84) both; will-change: transform, opacity; }
 @keyframes dsh-ink-halo { from { opacity: 0; } to { opacity: .85; } }
 @keyframes dsh-ink-halo-dry { from { opacity: 0; } to { opacity: .3; } }
 @keyframes dsh-ink-seal { from { opacity: 0; transform: translate(-50%, -50%) scale(1.55) rotate(-8deg); } to { opacity: 1; transform: translate(-50%, -50%) scale(1) rotate(0deg); } }
@@ -280,7 +281,7 @@
 	 * centre too: a fixed feather would leave the middle of "DeepSeek" showing behind the
 	 * mark. The reach is in vw because the word's own half-width is — 31.5 vw of 宣纸,
 	 * 28.5 vw of 夜山 — and 34 vw clears both with the fade reaching 44. */
-	mask-image: radial-gradient(circle at 50% 43%, #000 0 calc(var(--dsh-ink-wordspread) * 34vw), transparent calc(var(--dsh-ink-wordspread) * 44vw));
+	mask-image: radial-gradient(circle at 50% var(--dsh-ink-focus-y), #000 0 calc(var(--dsh-ink-wordspread) * 34vw), transparent calc(var(--dsh-ink-wordspread) * 44vw));
 	mask-mode: alpha;
 	mask-repeat: no-repeat;
 	mask-position: center;
@@ -309,12 +310,25 @@
 
 /* Brush axis · 湿墨 — the ink comes up through the paper: a wide wet bleed. */
 .dsh-ink-root[data-word=wet] { --s2: 24%; }
-.dsh-ink-letters { position: absolute; inset: 0; background: var(--dsh-ink-grad); mask-image: var(--dsh-ink-wm); mask-mode: luminance; mask-repeat: no-repeat; mask-position: 50% 43%; mask-size: var(--dsh-ink-wms); }
+.dsh-ink-letters { position: absolute; inset: 0; background: var(--dsh-ink-grad); mask-image: var(--dsh-ink-wm); mask-mode: luminance; mask-repeat: no-repeat; mask-position: 50% var(--dsh-ink-focus-y); mask-size: var(--dsh-ink-wms); }
 /* The fade belongs on the unmasked ancestor: a mask keeps the element out of
  * the compositor, so an opacity animation on the masked layer is a per-frame
  * repaint of the whole window — exactly where the stroke used to stutter. */
-.dsh-ink-root[data-word=wet] .dsh-ink-word { animation: dsh-ink-wet calc(var(--dsh-ink-dur) * .6452) linear calc(var(--dsh-ink-dur) * .22) both; }
+.dsh-ink-root[data-word=wet] .dsh-ink-word { animation: dsh-ink-wet calc(var(--dsh-ink-dur) * .5652) linear calc(var(--dsh-ink-dur) * .30) both; }
 @keyframes dsh-ink-wet { from { opacity: .25; } to { opacity: 1; } }
+
+/* On sweep/rise the main curtain used to be the wordmark's only reveal, which made
+ * the characters feel like a static part of the painting. Give wet ink its own paper
+ * cover. Only transform moves: the expensive full-window animated mask stays out. */
+.dsh-ink-root[data-word=wet]:not([data-bg=bloom]) .dsh-ink-word::after {
+	content: ""; position: absolute; top: -10%; left: 0; width: 100%; height: 120%;
+	background: linear-gradient(var(--dsh-ink-dir), transparent var(--s1), var(--dsh-ink-paper) var(--s2) 100%);
+	rotate: var(--dsh-ink-tilt); pointer-events: none; will-change: transform;
+	animation: dsh-ink-word-cover calc(var(--dsh-ink-dur) * .68) cubic-bezier(.5,0,.5,1) calc(var(--dsh-ink-dur) * .28) both;
+}
+@keyframes dsh-ink-word-cover { from { transform: translateX(0); } to { transform: translateX(108%); } }
+.dsh-ink-root[data-word=wet][data-bg=rise] .dsh-ink-word::after { animation-name: dsh-ink-word-cover-rise; }
+@keyframes dsh-ink-word-cover-rise { from { transform: translateY(0); } to { transform: translateY(-110%); } }
 
 /* Brush axis · 枯笔 — a crisper continuous front, dry streaks from the tile. */
 .dsh-ink-root[data-word=dry] { --s2: 6%; }
@@ -327,7 +341,7 @@
  * else — the brush has not moved yet, and the paper is all there is to draw on. The
  * breathing opacity lives on the unmasked ancestor: a mask keeps an element off the
  * compositor, and an opacity animation on the masked layer would repaint the window. */
-.dsh-ink-mark { position: absolute; left: 50%; top: 43%; width: 17%; aspect-ratio: 753 / 554; transform: translate(-50%, -50%); animation: dsh-ink-mark-out calc(var(--dsh-ink-dur) * .25) linear calc(var(--dsh-ink-dur) * .08) both; will-change: opacity, transform; }
+.dsh-ink-mark { position: absolute; left: 50%; top: 50%; width: 17%; aspect-ratio: 753 / 554; transform: translate(-50%, -50%); animation: dsh-ink-mark-out calc(var(--dsh-ink-dur) * .22) linear calc(var(--dsh-ink-dur) * .06) both; will-change: opacity, transform; }
 .dsh-ink-breathe { position: absolute; inset: 0; opacity: calc(.7 + var(--dsh-ink-wave, 0) * .28); transition: opacity 120ms linear; }
 /* The breath is the whale's own light: seven copies of the same silhouette, each a step
  * further out and a step fainter, so what diffuses is the animal's outline rather than a
@@ -365,6 +379,14 @@
 .dsh-ink-m2 { top: 70%; opacity: .42; animation: dsh-ink-drift 15s linear infinite reverse; }
 @keyframes dsh-ink-drift { to { transform: translateX(18%); } }
 
+/* While the brush is waiting, keep the existing mist just above the paper instead
+ * of starting another animation. The whale and progress stay above it; on release
+ * the bands return behind the curtain, so no layer is created or moved mid-stroke. */
+.dsh-ink-root[data-hold]:not([data-bg=bloom]) .dsh-ink-mist { z-index: 1; }
+.dsh-ink-root[data-hold]:not([data-bg=bloom]) .dsh-ink-m1 { opacity: .16; }
+.dsh-ink-root[data-hold]:not([data-bg=bloom]) .dsh-ink-m2 { opacity: .12; }
+.dsh-ink-mark { z-index: 2; }
+
 /* Progress: the design's own shape — no track (the tip lands on bare paper), a
    4px body of the ink gradient feathered 4%→88%, and an 8px wet bead. The SVG
    wet filter from the mock is the one thing that cannot ship: a runtime filter
@@ -392,6 +414,7 @@ body > span[style*="--dsw-specific-sidebar-fill"] { --dsw-specific-sidebar-fill:
 
 @media (prefers-reduced-motion: reduce) {
 	.dsh-ink-root, .dsh-ink-root * { animation: none; }
+	.dsh-ink-word::after { display: none; }
 	.dsh-ink-root { --dsh-ink-p: 1; }
 	.dsh-ink-wash { opacity: var(--dsh-ink-washo); transform: scale(1.03); }
 	.dsh-ink-curtain { transform: translateX(108%); }

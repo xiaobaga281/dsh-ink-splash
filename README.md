@@ -6,14 +6,29 @@ DeepSeek Harness（DSH）桌面版的开屏动画：一条墨锋同时把字标�
 
 需要一个已经能正常运行的 DSH 桌面版（0.2.x）。
 
-1. 把 `dsh-ink-splash-<版本>.tgz` 放进 DSH 的插件安装目录（或在「插件」页用「从文件安装」选择该 tgz）。
-2. 若手工安装：解压后得到 `package/`，把整个目录放到
-   `%USERPROFILE%\.dsh\plugins\dsh-ink-splash\`
-   （`profiles\desktop\node_modules\dsh-ink-splash` 是指向它的 junction，重装插件时不要覆盖错位置）。
-3. 重启 DSH。开屏动画会从第一帧接管，随后自动交棒给应用。
-4. 设置 → 开屏水墨：可以改三轴、主题、音量、重播时长，也可以「重播」预览。
+1. 打开 DSH 侧栏的「插件」页，点「添加插件」。官方安装器接受包名、Git 地址、压缩包或本地绝对路径。
+2. 任选一种来源填入对话框：
+   - 发布包：`dsh-ink-splash-0.3.3.tgz` 的完整本地路径；
+   - 源码目录：`D:\5\新建文件夹\plugins\dsh-ink-splash` 这类绝对路径（开发时 DSH 会按本地链接安装）；
+   - Git：`https://github.com/xiaobaga281/dsh-ink-splash.git`。
+3. 确认安装。DSH 会把它写进当前 profile 的依赖、锁文件和组合包选择，不需要手工建目录或 junction。
+4. 安装完成后如果提示需要重启，重启 DSH。开屏动画会从第一帧接管，随后自动交棒给应用。
+5. 设置 → 开屏水墨：可以改三轴、主题、音量、重播时长，也可以「重播」预览。
+
+不要手工把解压目录放进 `%USERPROFILE%\.dsh\plugins\`，也不要在 profile 里自建 `node_modules` junction；这条旧路径会绕开官方插件管理器的依赖记录和版本检查。
 
 ## 版本
+
+- 0.3.3（2026-11-15）
+  - 首笔时间：开屏放行改为「应用已绘制 + 内核弧 ≥ 90%」后只等 250 ms（上限 1000 ms），保留原来的 1100 ms quiet、3000 ms 兜底和 700 ms plateau。默认湿墨/横扫/侠客五次为 884、882、883、888、884 ms，中位 884 ms、最差 888 ms，较 0.3.2 基线中位约 1514 ms 缩短约 41.6%；最终夜山 12 组为 629–759 ms。
+  - 启动减负：不再在 prelude 预热另一套皮肤的整组图片；首笔后图层普查降频到 500 ms；`wash/scene/halo/mark/seal` 动画结束即释放 `will-change`；背景影片改为 metadata 预载；wave 在页面隐藏或根节点卸载时停止写入。没有新增全屏 blur/filter。
+  - 字标动画：湿墨字标增加独立的 `::after` 纸帘，只用 transform 从右向左扫开，不再借背景主纸帘；鲸鱼 6% 延迟、22% 时长退场，湿墨 30% 开始、56.52% 时长，独立字标纸帘 28% 开始、68% 时长；印章改自然减速。`prefers-reduced-motion` 下隐藏新增纸帘。
+  - 构图：字标焦点拆成主题变量，深色默认 43%，浅色 54%；湿墨字标、bloom 径向遮罩和 halo 共用同一变量。鲸鱼图标固定在画面 `50% / 50%`，不再随字标焦点移动。浅色字标宽度 59.5%、夜山 57%。
+  - 清晰度：四张底图新增 `-1600/-1920/-2560/-3200` 四档，两张灰度字标 mask 新增 2×（1520 宽）。prelude 按 `need = max(viewportWidth, viewportHeight × 1120 / 640)` 做 cover-aware 选档；当前 1280×822 @ DPR1.5 选 2560 档，底图 0.84×、夜山字标 0.72×，不再上行放大。字标用 `mask-mode: luminance`，原图与增强图的 alpha 均全 255，黑底不是透明通道丢失。
+  - 影片收尾：`ended` 事件在宿主繁忙时可能迟到；现在同时检查 `currentTime` 到末帧，并设 `mediaMs + 1250` 有界等待，回执带 `t=...` 和 `filmEndBy`。整段影片缺失时 1800 ms 后切回实时图层，背景影片缺失进入 `movie=error`，不再等 8 s watchdog。
+  - 诊断：`steps`/`rewind` 的动画时钟回退判定从 1 ms 放宽到 34 ms（30 fps 一帧），避免把浏览器时钟采样抖动记成视觉回退；真实重启动画仍会远超一帧。
+  - 视觉与流畅度限制：最终夜山矩阵每组首笔后约 2.35–2.92 s 出现 598–832 ms 的宿主侧采样停顿，LoAF 归因为 `nothing attributed`，即宿主长任务而非插件可归因长帧；CSS 主运动只走 transform/opacity 合成，报告里应将「宿主采样间隔 / LoAF」和「视觉帧」分开看。一次浅色 `wet-bloom-whale` 以 `t=1259ms · bounded-wait` 收尾，未触发 watchdog，但属于有界兜底而非自然 `ended`。
+  - 古风音效未重做；本轮只做动画、清晰度和安装方式整理。
 
 - 0.3.2（2026-11-12）
   - 设置页左侧导航里「开屏水墨」那一行不再顶着一个通用设置的齿轮。宿主的 `navIcon(id)` 是写死的 if 链，凡它不认识的 id 一律回落成齿轮；但设置契约本来就留了座位 —— `settings.section.icon` 是按分区 id 定址的 list（「registration id must equal the target section's id」），没人注册才用默认字形。现在这一格由插件自己画：一滴墨 + 一道水波，跟随宿主的画法（16 viewBox、无填充、1.3 描边、`currentColor`），深浅两套皮肤都取行本身的前景色。
