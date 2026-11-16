@@ -24,7 +24,7 @@
    exactly during the interval this exists to cover. Nothing traps the user
    either — the prelude removes itself if nobody takes over in time. */
 .dsh-ink-root { position: fixed; inset: 0; z-index: 2147483000; overflow: hidden; pointer-events: none; background: var(--dsh-ink-paper);
-	--dsh-ink-dir: 90deg; --s1: 0%; --s2: 15%; --dsh-ink-dur: {{CLOCK}}ms; --dsh-ink-tilt: 1.6deg; --dsh-ink-focus-y: 43%; }
+	--dsh-ink-dir: 90deg; --s1: 0%; --s2: 15%; --dsh-ink-dur: {{CLOCK}}ms; --dsh-ink-tilt: 1.6deg; --dsh-ink-focus-y: 43%; --dsh-ink-word-y: 43%; }
 
 /* Once the plugin owns the frame it is a gate, not a decoration: the stroke
  * must finish before the application underneath can be clicked. The
@@ -34,6 +34,7 @@
 
 .dsh-ink-root[data-theme=light] {
 	--dsh-ink-focus-y: 54%;
+	--dsh-ink-word-y: 57%;
 	--dsh-ink-paper: #efeade;
 	--dsh-ink-grad: linear-gradient(96deg, #0c0d10 0 42%, #22242a 76%, #3b3d44 100%);
 	--dsh-ink-haloc: rgb(24 26 30 / 9%);
@@ -281,7 +282,7 @@
 	 * centre too: a fixed feather would leave the middle of "DeepSeek" showing behind the
 	 * mark. The reach is in vw because the word's own half-width is — 31.5 vw of 宣纸,
 	 * 28.5 vw of 夜山 — and 34 vw clears both with the fade reaching 44. */
-	mask-image: radial-gradient(circle at 50% var(--dsh-ink-focus-y), #000 0 calc(var(--dsh-ink-wordspread) * 34vw), transparent calc(var(--dsh-ink-wordspread) * 44vw));
+	mask-image: radial-gradient(circle at 50% var(--dsh-ink-word-y), #000 0 calc(var(--dsh-ink-wordspread) * 34vw), transparent calc(var(--dsh-ink-wordspread) * 44vw));
 	mask-mode: alpha;
 	mask-repeat: no-repeat;
 	mask-position: center;
@@ -310,7 +311,7 @@
 
 /* Brush axis · 湿墨 — the ink comes up through the paper: a wide wet bleed. */
 .dsh-ink-root[data-word=wet] { --s2: 24%; }
-.dsh-ink-letters { position: absolute; inset: 0; background: var(--dsh-ink-grad); mask-image: var(--dsh-ink-wm); mask-mode: luminance; mask-repeat: no-repeat; mask-position: 50% var(--dsh-ink-focus-y); mask-size: var(--dsh-ink-wms); }
+.dsh-ink-letters { position: absolute; inset: 0; background: var(--dsh-ink-grad); mask-image: var(--dsh-ink-wm); mask-mode: luminance; mask-repeat: no-repeat; mask-position: 50% var(--dsh-ink-word-y); mask-size: var(--dsh-ink-wms); }
 /* The fade belongs on the unmasked ancestor: a mask keeps the element out of
  * the compositor, so an opacity animation on the masked layer is a per-frame
  * repaint of the whole window — exactly where the stroke used to stutter. */
