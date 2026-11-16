@@ -1,5 +1,13 @@
 # 变更记录
 
+## 0.3.5（2026-11-16）
+
+- 插件页顶部适配：`[class*="_pageBar"][data-natural]::before` 改用与中间纸面相同的预模糊底图、20% `layer-1` 着色和 `blur(28px) saturate(1.3)`，标题栏不再出现实心暗带。
+- 左栏底部渐隐：`.scrollFade` 不再刷不透明侧栏底色，`[class*="_scrollArea"]` 增加最后 24px 的透明 mask，列表内容真正渐隐到玻璃。
+- 删除死代码与死文件：移除 `theme.js` 中无人引用的 `INK_IDS`、`INK_TOKEN_NAMES` 导出；删除运行时生成的 `.boot.json`、`.injects.ndjson`；清理多处未使用的 catch 绑定。
+- 注释清理：修正 `-v2` 与实际 `FILM_VERSION = "v4"` 的不一致；移除已不存在的 `splash-capture/`、`splash-assets/` 开发路径引用；更新 DSH `0.2.0-rc.2` 的旧几何说明；把带日期和个人色彩的调试记录改为中性技术描述。
+- 资产与市场素材不变：44 个 `assets` 文件和 `docs/hero.jpg`、`docs/night.jpg`、`docs/xuan.jpg` 均保留，`screenshots.json` 继续指向三张预览图。
+
 ## 0.3.4（2026-11-15）
 
 - 文档发布版本：README 改为面向插件市场的短版说明，新增宣传主图、夜山/宣纸预览与 `screenshots.json`；完整版本记录迁到 CHANGELOG。无运行时代码变更。

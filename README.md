@@ -27,9 +27,9 @@
 
 1. 打开 DSH 侧栏「插件」页，点「添加插件」。
 2. 任选一种来源填入对话框：
-   - npm：`dsh-ink-splash@0.3.4`
+   - npm：`dsh-ink-splash@0.3.5`
    - Git：`https://github.com/xiaobaga281/dsh-ink-splash.git`
-   - 发布包 `dsh-ink-splash-0.3.4.tgz`，或源码目录的绝对路径。
+   - 发布包 `dsh-ink-splash-0.3.5.tgz`，或源码目录的绝对路径。
 3. 确认安装；如果提示需要重启，重启 DSH。
 4. 打开设置 → 开屏水墨，可以改三轴、主题、音量、重播时长，也可以点「重播」预览。
 
@@ -52,9 +52,9 @@
 
 ## 版本
 
-当前 **0.3.4**。完整变更记录见 [CHANGELOG.md](https://github.com/xiaobaga281/dsh-ink-splash/blob/main/CHANGELOG.md)。
+当前 **0.3.5**。完整变更记录见 [CHANGELOG.md](https://github.com/xiaobaga281/dsh-ink-splash/blob/main/CHANGELOG.md)。
 
-0.3.4 只更新说明文档与市场素材；运行时代码与 0.3.3 相同。0.3.3 的重点：首笔中位 884 ms；四档清晰度；湿墨字标独立纸帘；鲸鱼固定在 `50% / 50%`；影片结束改为有界等待。
+0.3.5 是清理与适配版本：插件页顶栏、左栏底部渐隐改为统一的磨砂材质；移除未使用导出、运行时回执与未使用 catch 绑定，修正过期注释。开屏动画、设置页和既有资产不变。
 
 ## 许可
 

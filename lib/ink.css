@@ -138,7 +138,7 @@
  * 用纸色盖住了 wash / scene / 字标 / 鲸鱼 / 印章全部 live 层——只剩 z-index:2 的
  * `.dsh-ink-prog` 露在外面，于是屏幕上只有黑底 + 进度条，声音照响。
  *
- * 2026-10-18 真机与 headless 双向复现：把 `.dsh-ink-film` 置 display:none 后同一帧
+ * 复现方式：把 `.dsh-ink-film` 置 display:none 后同一帧
  * 立刻出现完整山水 + DeepSeek 字标 + 鲸鱼 + 落印。判据只有一条：不画影片就不许有
  * 影片层。 */
 .dsh-ink-root:not([data-splash=film]) .dsh-ink-film { display: none; }
@@ -185,9 +185,9 @@
 .dsh-ink-front { position: absolute; top: -8%; left: -13%; height: 116%; width: 26%; background: linear-gradient(90deg, transparent, var(--dsh-ink-frontc) 48%, transparent); rotate: var(--dsh-ink-tilt); animation: dsh-ink-front-x var(--dsh-ink-dur) cubic-bezier(.5,0,.5,1) both; will-change: transform; }
 @keyframes dsh-ink-front-x { from { opacity: 0; transform: translateX(7.5vw); } 48% { opacity: 1; } to { opacity: 0; transform: translateX(107.5vw); } }
 /* 落印：`width: 4.4%` 之外必须给出高度，否则这个 div 的盒子是 56×0，背景图
- * (`center/contain`) 没有可绘制的区域 —— 从 0.2.0 起这枚印章就一直没出现过。
- * 用一个方盒 + contain 让它按印章自身比例落位（0.2.0/0.2.2 都是这一条缺高度）。
- * 2026-10-18 headless 实测：补上 aspect-ratio 后 56×56，红色印章在 t=2200/2600 正常出现。 */
+ * (`center/contain`) 没有可绘制的区域，印章不会出现。
+ * 用一个方盒 + contain 让它按印章自身比例落位；缺高度时印章盒是 56×0。
+ * 补上 aspect-ratio 后盒子为 56×56，红色印章在 t=2200/2600 正常出现。 */
 .dsh-ink-seal { position: absolute; left: calc(50% + var(--dsh-ink-sealx)); top: calc(43% + var(--dsh-ink-sealy)); width: 4.4%; aspect-ratio: 1; background: var(--dsh-ink-sealimg) center/contain no-repeat; animation: dsh-ink-seal calc(var(--dsh-ink-dur) * .1334) cubic-bezier(.16,1,.3,1) calc(var(--dsh-ink-dur) * .84) both; will-change: transform, opacity; }
 @keyframes dsh-ink-halo { from { opacity: 0; } to { opacity: .85; } }
 @keyframes dsh-ink-halo-dry { from { opacity: 0; } to { opacity: .3; } }
@@ -261,8 +261,8 @@
  * while the application paints its first frame, a CSS animation is not held, and that pair is
  * how the word came early on boot but on time in a replay.
  *
- * 鲸鱼边缘扩散 — his ruling this turn: 「还是别运笔了，改回原来的鲸鱼图标边缘扩散吧，别缩成墨点
- * 了」. The silhouette expands off its own outline and thins out, and the same number drives a
+ * 鲸鱼边缘扩散 — 设计取舍：不做运笔，保留鲸鱼图标边缘扩散，不缩成墨点
+ * The silhouette expands off its own outline and thins out, and the same number drives a
  * front growing outward from where the mark stands, so the letters arrive inside the
  * diffusion. The travelling dot and the spine of round deposits that answered the previous
  * request go with it. */
@@ -270,7 +270,7 @@
 	/* How far the ink has travelled from the mark, 0 → 1 across the stroke. */
 	--dsh-ink-spread: clamp(0, (var(--dsh-ink-p) - .10) / .72, 1);
 	/* The letters have their own front on the same clock, and it stays shut until the whale
-	 * is gone. His ruling 2026-10-17: 「鲸鱼图标还未完全消失 deepseek 字符就出现了」 — the mark
+	 * is gone. 设计约束：「鲸鱼图标还未完全消失 deepseek 字符就出现了」 — the mark
 	 * reaches opacity 0 at spread .45 (.40 of the clock), so the word's front starts at .52
 	 * and the two share no frame. Derived from the spread, not from --dsh-ink-p, so there is
 	 * still exactly one clock: the delayed mapping is the whole difference. */
@@ -367,9 +367,9 @@
 /* 生山 hides the paper curtain, so the mist — which that curtain keeps hidden until the
  * stroke on the other two axes — is exposed from frame 0. On 夜山 that reads as a
  * horizontal white band whose top edge sits exactly on the mark's bottom (`top: 52%`;
- * his 19:4x report: 鲸鱼下边感觉有一条白带); on 宣纸 it is white haze on white paper and
+ * 一处反馈：鲸鱼下边有一条白带); on 宣纸 it is white haze on white paper and
  * nobody ever saw it. So under bloom the haze waits: full width (masking it with the
- * radial reveal turned the band into a light patch under the fading mark — his 20:0x
+ * radial reveal turned the band into a light patch under the fading mark — a follow-up
  * report: 鲸鱼图标下边也有光斑), faded in by opacity only once the painting is up. The
  * drift keeps running underneath; before this ramp opens there is nothing to see. */
 .dsh-ink-root[data-bg=bloom] .dsh-ink-m1 { opacity: calc(.5 * clamp(0, (var(--dsh-ink-p) - .55) / .25, 1)); }
