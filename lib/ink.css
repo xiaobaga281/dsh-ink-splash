@@ -59,6 +59,8 @@
 	--dsh-ink-markglow: rgb(226 232 244 / 26%);
 }
 .dsh-ink-root[data-art=whale] { --dsh-ink-sealx: -27%; --dsh-ink-sealy: 31%; }
+/* 夜山 · 鲸娘：落印只在这一组单独下移，宣纸鲸娘仍保持 31%。 */
+.dsh-ink-root[data-theme=dark][data-art=whale] { --dsh-ink-sealy: 34%; }
 
 .dsh-ink-paint { position: absolute; inset: 0; background: var(--dsh-ink-paper); }
 .dsh-ink-paint.is-out { animation: dsh-ink-out {{EXIT}}ms ease-in forwards; }
