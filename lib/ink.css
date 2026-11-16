@@ -34,7 +34,7 @@
 
 .dsh-ink-root[data-theme=light] {
 	--dsh-ink-focus-y: 54%;
-	--dsh-ink-word-y: 57%;
+	--dsh-ink-word-y: 60%;
 	--dsh-ink-paper: #efeade;
 	--dsh-ink-grad: linear-gradient(96deg, #0c0d10 0 42%, #22242a 76%, #3b3d44 100%);
 	--dsh-ink-haloc: rgb(24 26 30 / 9%);
