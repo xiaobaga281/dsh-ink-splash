@@ -1,6 +1,6 @@
 {
   "name": "dsh-ink-splash",
-  "version": "0.3.6",
+  "version": "0.3.7",
   "description": "Ink-wash splash animation and matching theme for DeepSeek Harness — the DeepSeek wordmark is painted by a single ink front that also wakes the landscape behind it; three independent axes (brush / motion / artwork) chosen from a dedicated Settings sub-page · 水墨开屏动画与配套主题：一条墨锋同时描绘字标与背景山水，字标、运笔、画面三轴可在设置子页自由搭配",
   "type": "module",
   "main": "lib/index.js",
@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/xiaobaga281/dsh-ink-splash.git"
+    "url": "git+https://github.com/xiaobaga281/dsh-ink-splash.git"
   },
   "homepage": "https://github.com/xiaobaga281/dsh-ink-splash#readme",
   "keywords": [
