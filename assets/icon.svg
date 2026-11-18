@@ -1,0 +1,32 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="dsh-ink-splash 水墨开屏">
+  <defs>
+    <linearGradient id="ink" x1="14" y1="49" x2="52" y2="12" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#5264C9"/>
+      <stop offset=".42" stop-color="#5B6BA2"/>
+      <stop offset=".72" stop-color="#6E8BFF"/>
+      <stop offset="1" stop-color="#61EDE6"/>
+    </linearGradient>
+    <linearGradient id="drop" x1="47" y1="29" x2="58" y2="50" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#61EDE6"/>
+      <stop offset=".55" stop-color="#6A8BFF"/>
+      <stop offset="1" stop-color="#5B6BA2"/>
+    </linearGradient>
+  </defs>
+
+
+  <!-- one ink front, in the blue/cyan node language of the default plugin icon -->
+  <path d="M12.8 44.9C16.2 33.3 24.2 22.2 36.1 16.1C42.3 13 47.5 12.1 51.7 12.7C48.8 16.6 45.4 20.2 41.5 23.8C34.6 30.1 27.5 38.2 22.1 47.5C20.1 51 17.2 52.2 14.5 50.8C12.7 49.9 12.3 47.3 12.8 44.9Z" fill="url(#ink)"/>
+  <path d="M22.2 39.9C27.2 30.7 34.7 22.7 44.4 17.4" stroke="#DFFFFC" stroke-width="1.8" stroke-linecap="round" opacity=".38"/>
+  <path d="M31.1 43.7C33.4 39.9 36.1 36.1 39.2 32.2" stroke="#2E3C8F" stroke-width="1.2" stroke-linecap="round" opacity=".28"/>
+
+  <!-- droplets -->
+  <path d="M46.8 31.6C46.8 27.8 49.6 23.3 53.3 21.7C55.1 25.5 56.1 29.5 55.9 33.4C55.7 38.1 52.8 41.5 49.3 41.4C46.4 41.3 44.8 38.5 45.1 35.3C45.4 33.8 46 32.7 46.8 31.6Z" fill="url(#drop)"/>
+  <circle cx="18.8" cy="18.1" r="3.65" fill="#61EDE6"/>
+  <circle cx="52.6" cy="15.1" r="3.2" fill="#61EDE6" opacity=".9"/>
+  <circle cx="56.5" cy="46.4" r="2.2" fill="#5B6BA2"/>
+  <circle cx="21.7" cy="55.2" r="1.35" fill="#61EDE6" opacity=".7"/>
+
+  <!-- glossy top-left node highlights -->
+  <circle cx="17.9" cy="17.2" r="1.15" fill="#E9FFFE" opacity=".7"/>
+  <circle cx="51.7" cy="14.2" r="1" fill="#E9FFFE" opacity=".66"/>
+</svg>

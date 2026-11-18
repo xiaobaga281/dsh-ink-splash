@@ -2,7 +2,7 @@
 
 ![dsh-ink-splash 水墨开屏](https://raw.githubusercontent.com/xiaobaga281/dsh-ink-splash/main/docs/hero.jpg)
 
-> Ink-wash splash and theme for DeepSeek Harness. One ink front writes the DeepSeek wordmark and wakes the landscape behind it.
+> 为 DeepSeek Harness 打造的水墨开屏与配套主题：一条墨锋同时写出 DeepSeek 字标、唤醒背后的山水。
 
 一条墨锋同时写出 **DeepSeek** 字标、唤醒背后的山水。夜山 / 宣纸两套皮肤，字标、运笔、画面三轴独立选择；开屏结束自动交棒给 DSH。
 
@@ -30,9 +30,9 @@
 
 1. 打开 DSH 侧栏「插件」页，点「添加插件」。
 2. 任选一种来源填入对话框：
-   - npm：`dsh-ink-splash@0.3.7`
+   - npm：`dsh-ink-splash@0.3.8`
    - Git：`https://github.com/xiaobaga281/dsh-ink-splash.git`
-   - 发布包 `dsh-ink-splash-0.3.7.tgz`，或源码目录的绝对路径。
+   - 发布包 `dsh-ink-splash-0.3.8.tgz`，或源码目录的绝对路径。
 3. 确认安装；如果提示需要重启，重启 DSH。
 4. 打开设置 → 开屏水墨，可以改三轴、主题、音量、重播时长，也可以点「重播」预览。
 
@@ -55,9 +55,9 @@
 
 ## 版本
 
-当前 **0.3.7**。完整变更记录见 [CHANGELOG.md](https://github.com/xiaobaga281/dsh-ink-splash/blob/main/CHANGELOG.md)。
+当前 **0.3.8**。完整变更记录见 [CHANGELOG.md](https://github.com/xiaobaga281/dsh-ink-splash/blob/main/CHANGELOG.md)。
 
-0.3.7 是 0.3.6 的修订发布：在玻璃与右栏跟随的基础上，补齐宣纸字标下移、宣纸落印上移和夜山鲸娘落印下移，并确保 npm 包与仓库源码一致。0.3.6 曾提前上架但缺少最后一条夜山鲸娘落印规则，因此以 0.3.7 作为最新版。
+0.3.8 聚焦「鲸娘开屏到应用界面」的收尾：退场时让应用界面真正参与交叉淡出，去掉整块影片的缩放，并在淡出前暂停视频解码；整理阶段同时删除了已退役的鲸娘 v4–v7 影片与两段旧鲸娘背景视频。
 
 ## 许可
 

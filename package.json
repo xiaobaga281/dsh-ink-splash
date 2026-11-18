@@ -1,7 +1,7 @@
 {
   "name": "dsh-ink-splash",
-  "version": "0.3.7",
-  "description": "Ink-wash splash animation and matching theme for DeepSeek Harness — the DeepSeek wordmark is painted by a single ink front that also wakes the landscape behind it; three independent axes (brush / motion / artwork) chosen from a dedicated Settings sub-page · 水墨开屏动画与配套主题：一条墨锋同时描绘字标与背景山水，字标、运笔、画面三轴可在设置子页自由搭配",
+  "version": "0.3.8",
+  "description": "水墨开屏动画与配套主题：一条墨锋同时描绘 DeepSeek 字标和背景山水，夜山 / 宣纸两套皮肤，字标 / 运笔 / 画面三轴可在设置子页自由搭配。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {
@@ -24,9 +24,11 @@
     "lib/ink.css",
     "lib/ink-ui.css",
     "cordis.patch.yml",
-    "assets"
+    "assets",
+    "CHANGELOG.md"
   ],
   "license": "MIT",
+  "icon": "./assets/icon.svg",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/xiaobaga281/dsh-ink-splash.git"

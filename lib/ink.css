@@ -62,9 +62,14 @@
 /* 夜山 · 鲸娘：落印只在这一组单独下移，宣纸鲸娘仍保持 31%。 */
 .dsh-ink-root[data-theme=dark][data-art=whale] { --dsh-ink-sealy: 34%; }
 
+/* 鲸娘在 live 退路里用未裁切的完整底图；模糊底图和 drift 都会把整张底图再画一遍，
+ * 于是出现第二个月亮。只隐藏这两个重复层，字标和印章仍由 live 层提供。 */
+.dsh-ink-root[data-art=whale]:not([data-splash=film]) .dsh-ink-wash,
+.dsh-ink-root[data-art=whale] .dsh-ink-drift { display: none; }
+
 .dsh-ink-paint { position: absolute; inset: 0; background: var(--dsh-ink-paper); }
-.dsh-ink-paint.is-out { animation: dsh-ink-out {{EXIT}}ms ease-in forwards; }
-@keyframes dsh-ink-out { to { opacity: 0; transform: scale(1.03); } }
+.dsh-ink-paint.is-out { animation: dsh-ink-out {{EXIT}}ms ease-out forwards; will-change: opacity; }
+@keyframes dsh-ink-out { to { opacity: 0; } }
 
 /* The clock is the master timeline and it is linear on purpose: an eased curve
  * would travel faster than nominal in its middle, which is the fast-forward this
@@ -132,7 +137,78 @@
 /* The live layers are the children of the paint, and so is the film — hiding from the root
  * would take the film out with them, which is what the first version of this rule did while
  * every gate on its wording stayed green. */
-.dsh-ink-root[data-splash=film] .dsh-ink-paint > :not(.dsh-ink-film) { display: none; }
+.dsh-ink-root[data-splash=film] .dsh-ink-paint > :not(.dsh-ink-film):not(.dsh-ink-word) { display: none; }
+
+/* The regenerated whale films are painted from the clean full-body stills, so they
+ * carry no baked DeepSeek lettering. Keep the live wordmark above the film instead of
+ * asking the video model to invent lettering; it stays the same ink, mask and axis
+ * animation as the rest of the splash. */
+/* Hero's film already carries the painted DeepSeek lettering at its own 2.2 s beat.
+ * Keep the live word out until the film has passed the whale-gated 2.0 s clean frame;
+ * then the film freezes on that word-free painting and the live word is restarted by
+ * `data-filmhandoff`, so the letters animate after the whale has left instead of
+ * popping in baked. The whale films keep their own gated live wordmark. */
+.dsh-ink-root[data-splash=film]:not([data-art=whale]):not([data-filmhandoff="1"]) .dsh-ink-word { display: none; }
+.dsh-ink-root[data-splash=film][data-filmhandoff="1"] .dsh-ink-word {
+	display: block;
+	z-index: 1;
+	animation: dsh-ink-wet 1.15s linear both !important;
+}
+.dsh-ink-root[data-splash=film][data-filmhandoff="1"] .dsh-ink-word::after {
+	animation: dsh-ink-word-cover 1.15s cubic-bezier(.5, 0, .5, 1) both !important;
+}
+.dsh-ink-root[data-splash=film] .dsh-ink-film { z-index: 0; }
+.dsh-ink-root[data-splash=film]:not([data-filmhandoff="1"]) .dsh-ink-word,
+.dsh-ink-root[data-splash=film][data-art=whale] .dsh-ink-word { display: block; z-index: 1; }
+/* The whale film's own head is the waiting mark on bare paper. Keep the live lettering
+ * out of that intro: it starts only after the film itself has passed the mark, so the
+ * order is mark → mark gone → painting + wordmark. The timestamp is applied by
+ * client.js from `film.currentTime`, never from page-mount time: a late video start
+ * must not let the letters overtake the icon. The rule is not limited to film mode:
+ * while the video is still decoding, the live fallback must keep its letters hidden too.
+ *
+ * The generic `dsh-ink-wet` ramp starts at page mount; it is cancelled with !important,
+ * because an animation beats a normal opacity declaration and it was the 0.25-opacity
+ * ghost that appeared before the mark had left. */
+.dsh-ink-root[data-art=whale] .dsh-ink-word {
+	opacity: 0;
+	clip-path: inset(0 100% 0 0);
+	animation: none !important;
+}
+/* The old cover pseudo is a full-window paper band sweeping across the painting; on the
+ * whale head it read as a hard horizontal wipe behind the mark. The whale wordmark uses
+ * the lettering-only clip reveal below instead, so the band is removed, not retimed. */
+.dsh-ink-root[data-art=whale] .dsh-ink-word::after {
+	display: none !important;
+}
+.dsh-ink-root[data-art=whale][data-wordstart="1"] .dsh-ink-word {
+	opacity: 1;
+	animation: dsh-ink-film-word-wipe 1.4s cubic-bezier(.22, .61, .36, 1) both !important;
+}
+@keyframes dsh-ink-film-word-wipe {
+	from { clip-path: inset(0 100% 0 0); opacity: 1; }
+	to { clip-path: inset(0 0 0 0); opacity: 1; }
+}
+/* The live waiting mark is not allowed to sit beside the letters either: at the same
+ * marker the icon is gone, matching the film's own icon head. */
+.dsh-ink-root[data-art=whale][data-wordstart="1"] .dsh-ink-mark {
+	opacity: 0;
+}
+/* A full-body whale puts its tail under the wordmark that was sized for the old,
+ * tail-cropped film. Pull the wordmark up and in, only while the whale film plays,
+ * so the DeepSeek lettering and the whole tail can both be read. */
+.dsh-ink-root[data-splash=film][data-art=whale] .dsh-ink-word {
+	--dsh-ink-wms: 44% auto;
+	--dsh-ink-word-y: 30%;
+}
+/* 宣纸鲸娘：字标继续往左下让，避开画面右侧的鲸身与落印；只改宣纸这一套，
+ * 夜山仍保持原来的 44% / 30%。 */
+.dsh-ink-root[data-splash=film][data-art=whale][data-theme=light] .dsh-ink-word {
+	--dsh-ink-word-y: 38%;
+}
+.dsh-ink-root[data-splash=film][data-art=whale][data-theme=light] .dsh-ink-letters {
+	mask-position: 42% var(--dsh-ink-word-y);
+}
 /* 没有影片的轴（例如 wet/sweep、rise）也必须把这个元素藏起来。
  *
  * 影片层是无条件写进 MARKUP 的 `<video>`，并且自带 `background: var(--dsh-ink-paper)`
@@ -298,6 +374,8 @@
 	transform: translate(-50%, -50%) scale(calc(1 + var(--dsh-ink-spread) * .5));
 	animation: none;
 }
+/* The film owns the painting, including the opening whale mark in its own head. No live
+ * mark is overlaid here: the whale films are cut with the same icon intro the hero uses. */
 .dsh-ink-root[data-bg=bloom] .dsh-ink-breathe {
 	/* The breath keeps its own term: the diffusion must not silence the waiting mark before it
 	 * starts moving, and the mark's own opacity does the fading from here up. */

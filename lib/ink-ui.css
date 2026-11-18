@@ -42,27 +42,55 @@
  * The lists must stay the same length in every rule: a background layer with no matching
  * size/repeat/position entry silently borrows the wrong one, which moves the picture rather
  * than dimming it. A check derives those counts from the shipped sheet. */
+/* The UI ground follows the same artwork axis as the splash. `data-dsh-ink-art`
+ * is written by client.js whenever the saved artwork changes; without it the hero
+ * pair remains the fallback, exactly as before. Keeping the two pictures in one
+ * variable pair means every glass strip swaps with the wallpaper at once. */
+:root[data-dsh-ink-theme="ink-jianghu"] {
+	--dsh-ink-wall-full: url("/ink-splash/bg-xuan.jpg");
+	--dsh-ink-wall-blur: url("/ink-splash/bg-xuan-blur-hi.jpg");
+	--dsh-ink-wall-top: #e4cfb3;
+	--dsh-ink-wall-body: #e9dfc7;
+}
+:root[data-dsh-ink-theme="ink-jianghu-dark"] {
+	--dsh-ink-wall-full: url("/ink-splash/bg-night.jpg");
+	--dsh-ink-wall-blur: url("/ink-splash/bg-night-blur-hi.jpg");
+	--dsh-ink-wall-top: #2f3131;
+	--dsh-ink-wall-body: #0f0e0c;
+}
+:root[data-dsh-ink-theme="ink-jianghu"][data-dsh-ink-art="whale"] {
+	--dsh-ink-wall-full: url("/ink-splash/bg-whale-xuan.jpg");
+	--dsh-ink-wall-blur: url("/ink-splash/bg-whale-xuan-blur-hi.jpg");
+	--dsh-ink-wall-top: #e6d8be;
+	--dsh-ink-wall-body: #e6d8be;
+}
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-dsh-ink-art="whale"] {
+	--dsh-ink-wall-full: url("/ink-splash/bg-whale-night.jpg");
+	--dsh-ink-wall-blur: url("/ink-splash/bg-whale-night-blur-hi.jpg");
+	--dsh-ink-wall-top: #191919;
+	--dsh-ink-wall-body: #191919;
+}
 :root[data-dsh-ink-theme] body {
-	background-color: #e9dfc7;
+	background-color: var(--dsh-ink-wall-body);
 	background-image:
 		url("/ink-splash/grain.png"),
 		linear-gradient(to top, rgba(58, 44, 26, .34) 0 18%, rgba(58, 44, 26, 0) 62%),
 		linear-gradient(to bottom, rgba(250, 246, 236, .34), rgba(250, 246, 236, 0) 40%),
 		linear-gradient(var(--dsh-ink-walllight, transparent), var(--dsh-ink-walllight, transparent)),
-		url("/ink-splash/bg-xuan-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: 220px 220px, auto, auto, auto, cover;
 	background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 	background-position: 0 0, 0 0, 0 0, 0 0, center;
 	background-blend-mode: multiply, normal, normal, normal, normal;
 }
 :root[data-dsh-ink-theme="ink-jianghu-dark"] body {
-	background-color: #0f0e0c;
+	background-color: var(--dsh-ink-wall-body);
 	background-image:
 		url("/ink-splash/grain.png"),
 		linear-gradient(to top, rgba(0, 0, 0, .58) 0 22%, rgba(0, 0, 0, 0) 66%),
 		linear-gradient(to bottom, rgba(10, 9, 8, .42), rgba(10, 9, 8, 0) 44%),
 		linear-gradient(var(--dsh-ink-walllight, transparent), var(--dsh-ink-walllight, transparent)),
-		url("/ink-splash/bg-night-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: 220px 220px, auto, auto, auto, cover;
 	background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 	background-position: 0 0, 0 0, 0 0, 0 0, center;
@@ -96,12 +124,12 @@
 	/* The painting is width-fitted and floor-anchored, so a narrow reading column (the
 	 * rightbar docked open) leaves sky above it — painted with the picture's own
 	 * top-row tone, the slack IS the sky: the scrim composites identically on both
-	 * sides of the seam, so there is no seam to see. Sampled: bg-xuan top ≈ #e4cfb3. */
-	background-color: #e4cfb3;
+	 * sides of the seam, so there is no seam to see. Sampled per artwork. */
+	background-color: var(--dsh-ink-wall-top);
 	background-image:
 		linear-gradient(to bottom, rgba(245, 240, 230, .66) 0 22%, rgba(245, 240, 230, .56) 45%, rgba(245, 240, 230, .34) 74%, rgba(245, 240, 230, .12)),
 		linear-gradient(var(--dsh-ink-walllight, transparent), var(--dsh-ink-walllight, transparent)),
-		url("/ink-splash/bg-xuan.jpg");
+		var(--dsh-ink-wall-full);
 	background-attachment: fixed, fixed, fixed;
 	background-size: auto, auto, 100% auto;
 	background-position: 0 0, 0 0, 50% 100%;
@@ -159,7 +187,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-night-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -170,7 +198,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-xuan-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -185,7 +213,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-xuan-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -197,7 +225,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-night-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -209,11 +237,11 @@
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [data-slot="main.conversation"] > *,
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [data-slot="conversation.composer.bar"] > * {
 	/* bg-night top ≈ #303232 — same slack-as-sky treatment as the paper sheet. */
-	background-color: #2f3131;
+	background-color: var(--dsh-ink-wall-top);
 	background-image:
 		linear-gradient(to bottom, rgba(23, 21, 19, .70) 0 22%, rgba(23, 21, 19, .55) 48%, rgba(23, 21, 19, .32) 76%, rgba(23, 21, 19, .14)),
 		linear-gradient(var(--dsh-ink-walllight, transparent), var(--dsh-ink-walllight, transparent)),
-		url("/ink-splash/bg-night.jpg");
+		var(--dsh-ink-wall-full);
 	background-attachment: fixed, fixed, fixed;
 	background-size: auto, auto, 100% auto;
 	background-position: 0 0, 0 0, 50% 100%;
@@ -303,7 +331,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-xuan-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -313,12 +341,43 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-night-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
 }
+/* Hero's reading pane and the sidebar must show the same part of the same painting.
+ * The sidebar's frosted copy is cover / centre-top; the conversation sheet and composer
+ * were still 100%-width / bottom-anchored, so the moon and branch sat at a different
+ * place on each side. Align only the full-wallpaper surfaces to the sidebar's existing
+ * crop. No blur, tint, saturation or sidebar material is changed here. */
+:root[data-dsh-ink-theme="ink-jianghu"][data-dsh-ink-art="hero"] [data-slot="root"] > *,
+:root[data-dsh-ink-theme="ink-jianghu"][data-dsh-ink-art="hero"] [data-slot="main.conversation"] > *,
+:root[data-dsh-ink-theme="ink-jianghu"][data-dsh-ink-art="hero"] [data-slot="conversation.composer.bar"] > *,
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-dsh-ink-art="hero"] [data-slot="root"] > *,
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-dsh-ink-art="hero"] [data-slot="main.conversation"] > *,
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-dsh-ink-art="hero"] [data-slot="conversation.composer.bar"] > * {
+	background-size: auto, auto, cover;
+	background-position: 0 0, 0 0, center top;
+}
+
+/* The square outside the sheet's 28px arc is the centre column's own ground, not a
+ * separate patch: paint that ground with the exact sidebar sheet and tint. The
+ * conversation sheet already carries the same full picture inside its rounded
+ * silhouette, so the sliver and the sidebar read as one material; the sheet and its
+ * 28px radius are not touched. */
+:root[data-dsh-ink-theme] [class$="centerCol"] {
+	background-color: transparent;
+	background-image:
+		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
+		var(--dsh-ink-wall-blur);
+	background-size: auto, cover;
+	background-position: 0 0, center top;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+}
+
 /* The right panel opens by animating its grid column, not by transforming a layer.
  * A live `backdrop-filter` on that pseudo has to re-sample the page every frame while
  * the column grows, which is the one-frame lag visible when it slides in and out.
@@ -330,7 +389,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-xuan-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -343,7 +402,7 @@
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
-		url("/ink-splash/bg-night-blur-hi.jpg");
+		var(--dsh-ink-wall-blur);
 	background-size: auto, cover;
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
@@ -452,11 +511,11 @@
  * the app's `*` rule already gives it the continuous corner. */
 :root[data-dsh-ink-theme] :has(> [data-slot="conversation.composer.dock"]) {
 	border-radius: var(--dsw-radius-md);
-	background-color: #e4cfb3;
+	background-color: var(--dsh-ink-wall-top);
 	background-image:
 		linear-gradient(to bottom, rgba(245, 240, 230, .66) 0 22%, rgba(245, 240, 230, .56) 45%, rgba(245, 240, 230, .34) 74%, rgba(245, 240, 230, .12)),
 		linear-gradient(var(--dsh-ink-walllight, transparent), var(--dsh-ink-walllight, transparent)),
-		url("/ink-splash/bg-xuan.jpg");
+		var(--dsh-ink-wall-full);
 	background-attachment: fixed, fixed, fixed;
 	background-size: auto, auto, 100% auto;
 	background-position: 0 0, 0 0, 50% 100%;
@@ -464,11 +523,11 @@
 }
 :root[data-dsh-ink-theme="ink-jianghu-dark"] :has(> [data-slot="conversation.composer.dock"]) {
 	border-radius: var(--dsw-radius-md);
-	background-color: #2f3131;
+	background-color: var(--dsh-ink-wall-top);
 	background-image:
 		linear-gradient(to bottom, rgba(23, 21, 19, .70) 0 22%, rgba(23, 21, 19, .55) 48%, rgba(23, 21, 19, .32) 76%, rgba(23, 21, 19, .14)),
 		linear-gradient(var(--dsh-ink-walllight, transparent), var(--dsh-ink-walllight, transparent)),
-		url("/ink-splash/bg-night.jpg");
+		var(--dsh-ink-wall-full);
 	background-attachment: fixed, fixed, fixed;
 	background-size: auto, auto, 100% auto;
 	background-position: 0 0, 0 0, 50% 100%;
@@ -508,6 +567,25 @@
 	-webkit-backdrop-filter: blur(34px) saturate(1.4);
 }
 :root[data-dsh-ink-theme] [data-slot="conversation.input.dock"] [class$="_panel"]::before {
+	background-color: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 36%, transparent);
+	backdrop-filter: blur(34px) saturate(1.4);
+	-webkit-backdrop-filter: blur(34px) saturate(1.4);
+}
+/* The goal strip above the input is registered in the same dock as the queue panel,
+ * but it is a `_bar`, not a `_panel`: it never received the queue's glass and read as
+ * a bare tinted line over the painting. Give it the identical input-card glass. */
+:root[data-dsh-ink-theme] [data-slot="conversation.input.dock"] [class$="_bar"] {
+	position: relative;
+	isolation: isolate;
+	background: none;
+}
+:root[data-dsh-ink-theme] [data-slot="conversation.input.dock"] [class$="_bar"]::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	border-radius: inherit;
 	background-color: color-mix(in srgb, var(--dsw-alias-bg-layer-2) 36%, transparent);
 	backdrop-filter: blur(34px) saturate(1.4);
 	-webkit-backdrop-filter: blur(34px) saturate(1.4);
