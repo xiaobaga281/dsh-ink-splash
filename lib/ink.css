@@ -136,8 +136,16 @@
 }
 /* The live layers are the children of the paint, and so is the film — hiding from the root
  * would take the film out with them, which is what the first version of this rule did while
- * every gate on its wording stayed green. */
-.dsh-ink-root[data-splash=film] .dsh-ink-paint > :not(.dsh-ink-film):not(.dsh-ink-word) { display: none; }
+ * every gate on its wording stayed green. The whale mark is the one deliberate exception:
+ * it carries the live outline that the baked film head does not. */
+.dsh-ink-root[data-splash=film] .dsh-ink-paint > :not(.dsh-ink-film):not(.dsh-ink-word):not(.dsh-ink-prog):not(.dsh-ink-mark) { display: none; }
+
+/* The whale film's baked head carries the whale silhouette but no halo. The original
+ * mark is the same silhouette plus the eight-ring glow; keep that live mark above the
+ * film for the whale run so the outline is not lost when the film takes the frame. Its
+ * own mark-out animation ends at the head cut, so it does not sit beside the wordmark.
+ * Hero has no mark in its film and keeps the old hidden state. */
+.dsh-ink-root[data-splash=film]:not([data-art=whale]) .dsh-ink-mark { display: none; }
 
 /* The regenerated whale films are painted from the clean full-body stills, so they
  * carry no baked DeepSeek lettering. Keep the live wordmark above the film instead of
@@ -160,9 +168,9 @@
 .dsh-ink-root[data-splash=film] .dsh-ink-film { z-index: 0; }
 .dsh-ink-root[data-splash=film]:not([data-filmhandoff="1"]) .dsh-ink-word,
 .dsh-ink-root[data-splash=film][data-art=whale] .dsh-ink-word { display: block; z-index: 1; }
-/* The whale film's own head is the waiting mark on bare paper. Keep the live lettering
- * out of that intro: it starts only after the film itself has passed the mark, so the
- * order is mark → mark gone → painting + wordmark. The timestamp is applied by
+/* The whale head uses the live mark for its outline; keep the live lettering out of that
+ * intro: it starts only after the film itself has passed the mark, so the order is
+ * mark → mark gone → painting + wordmark. The timestamp is applied by
  * client.js from `film.currentTime`, never from page-mount time: a late video start
  * must not let the letters overtake the icon. The rule is not limited to film mode:
  * while the video is still decoding, the live fallback must keep its letters hidden too.
