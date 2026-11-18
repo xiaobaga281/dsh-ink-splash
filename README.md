@@ -30,9 +30,9 @@
 
 1. 打开 DSH 侧栏「插件」页，点「添加插件」。
 2. 任选一种来源填入对话框：
-   - npm：`dsh-ink-splash@0.3.8`
+   - npm：`dsh-ink-splash@0.3.9`
    - Git：`https://github.com/xiaobaga281/dsh-ink-splash.git`
-   - 发布包 `dsh-ink-splash-0.3.8.tgz`，或源码目录的绝对路径。
+   - 源码目录的绝对路径；如果你本地已有发布包 `.tgz`，也可以直接填入包路径。
 3. 确认安装；如果提示需要重启，重启 DSH。
 4. 打开设置 → 开屏水墨，可以改三轴、主题、音量、重播时长，也可以点「重播」预览。
 
@@ -55,9 +55,9 @@
 
 ## 版本
 
-当前 **0.3.8**。完整变更记录见 [CHANGELOG.md](https://github.com/xiaobaga281/dsh-ink-splash/blob/main/CHANGELOG.md)。
+当前 **0.3.9**。完整变更记录见 [CHANGELOG.md](https://github.com/xiaobaga281/dsh-ink-splash/blob/main/CHANGELOG.md)。
 
-0.3.8 聚焦「鲸娘开屏到应用界面」的收尾：退场时让应用界面真正参与交叉淡出，去掉整块影片的缩放，并在淡出前暂停视频解码；整理阶段同时删除了已退役的鲸娘 v4–v7 影片与两段旧鲸娘背景视频。
+0.3.9 聚焦设置页控件跟手性与鲸娘开屏资产：开关、分段按钮和滑块改为本地即时反馈，不再等宿主快照回写；鲸娘开屏影片升级为 v9，12 个背景轴影片统一换成居中片头与未裁切山水正片。
 
 ## 许可
 
