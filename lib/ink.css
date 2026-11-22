@@ -147,6 +147,14 @@
  * Hero has no mark in its film and keeps the old hidden state. */
 .dsh-ink-root[data-splash=film]:not([data-art=whale]) .dsh-ink-mark { display: none; }
 
+/* The four 10 s album films already carry the DeepSeek wordmark, the whale mark and
+ * the finished painting. Keeping either live layer above them would paint a second
+ * lettering/mark over the baked one, so the album variant turns both off. */
+.dsh-ink-root[data-splash=film][data-filmword=baked] .dsh-ink-word,
+.dsh-ink-root[data-splash=film][data-filmword=baked] .dsh-ink-mark {
+	display: none !important;
+}
+
 /* The regenerated whale films are painted from the clean full-body stills, so they
  * carry no baked DeepSeek lettering. Keep the live wordmark above the film instead of
  * asking the video model to invent lettering; it stays the same ink, mask and axis
@@ -382,13 +390,6 @@
 	transform: translate(-50%, -50%) scale(calc(1 + var(--dsh-ink-spread) * .5));
 	animation: none;
 }
-/* The film owns the painting, including the opening whale mark in its own head. No live
- * mark is overlaid here: the whale films are cut with the same icon intro the hero uses. */
-.dsh-ink-root[data-bg=bloom] .dsh-ink-breathe {
-	/* The breath keeps its own term: the diffusion must not silence the waiting mark before it
-	 * starts moving, and the mark's own opacity does the fading from here up. */
-	opacity: calc(.7 + var(--dsh-ink-wave, 0) * .28);
-}
 .dsh-ink-root[data-bg=bloom] .dsh-ink-wash { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.85, 1); animation: none; opacity: calc(var(--q) * var(--dsh-ink-washo)); transform: scale(calc(1.09 - var(--q) * .06)); }
 .dsh-ink-root[data-bg=bloom] .dsh-ink-scene { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.7, 1); opacity: var(--q); transform: scale(calc(1.05 - var(--q) * .05)); }
 .dsh-ink-root[data-bg=bloom] .dsh-ink-warp { --q: clamp(0, (var(--dsh-ink-p) - .24) * 1.7, 1); animation: none; opacity: var(--q); transform: scale(calc(1.05 - var(--q) * .05)); }
@@ -428,18 +429,24 @@
  * painted with the wordmark's gradient, so it is the same ink as the letters that will
  * replace it. It sits above the curtain because the curtain is what covers everything
  * else — the brush has not moved yet, and the paper is all there is to draw on. The
- * breathing opacity lives on the unmasked ancestor: a mask keeps an element off the
+ * breathing motion lives on the unmasked glow wrapper: a mask keeps an element off the
  * compositor, and an opacity animation on the masked layer would repaint the window. */
 .dsh-ink-mark { position: absolute; left: 50%; top: 50%; width: 17%; aspect-ratio: 753 / 554; transform: translate(-50%, -50%); animation: dsh-ink-mark-out calc(var(--dsh-ink-dur) * .22) linear calc(var(--dsh-ink-dur) * .06) both; will-change: opacity, transform; }
-.dsh-ink-breathe { position: absolute; inset: 0; opacity: calc(.7 + var(--dsh-ink-wave, 0) * .28); transition: opacity 120ms linear; }
-/* The breath is the whale's own light: seven copies of the same silhouette, each a step
+.dsh-ink-breathe { position: absolute; inset: 0; opacity: 1; }
+/* The breath is the whale's own light: eight copies of the same silhouette, each a step
  * further out and a step fainter, so what diffuses is the animal's outline rather than a
  * circle drawn behind it — one radial gradient read as a lens ring, which is not light
  * coming off an edge. The stack is static, so it costs one paint; the breathing stays
  * opacity and scale on this unmasked wrapper, and the transition is what makes it smooth:
  * the compositor carries the motion between the integrator's 33 ms writes, so a blocked
- * main thread slows the pulse instead of stepping it. */
-.dsh-ink-glow { position: absolute; inset: 0; opacity: calc(.5 + var(--dsh-ink-wave, 0) * .5); transform: scale(calc(.99 + var(--dsh-ink-wave, 0) * .06)); transition: opacity 120ms linear, transform 120ms linear; will-change: opacity, transform; }
+ * main thread slows the pulse instead of stepping it.
+ *
+ * The animal itself no longer breathes with the light. The old wrapper dimmed the whole
+ * icon to 70 % on the exhale, so the whale looked like it was switching on and off rather
+ * than sitting inside a halo. The body stays at full ink; only this halo moves. The range
+ * is still readable (12 % → 92 %, +2 % scale), but the crest is softened by a 150 ms sine
+ * ease and a 1.3 px static blur: it breathes slowly and softly instead of pulsing. */
+.dsh-ink-glow { position: absolute; inset: 0; opacity: calc(.12 + var(--dsh-ink-wave, 0) * .8); transform: scale(calc(.99 + var(--dsh-ink-wave, 0) * .02)); transition: opacity 150ms cubic-bezier(.37, 0, .63, 1), transform 150ms cubic-bezier(.37, 0, .63, 1); filter: blur(1.3px); will-change: opacity, transform; }
 .dsh-ink-glow i { position: absolute; inset: 0; background: var(--dsh-ink-markglow); mask: center/100% 100% no-repeat url(/ink-splash/mark-mask.png); -webkit-mask: center/100% 100% no-repeat url(/ink-splash/mark-mask.png); }
 .dsh-ink-glow i:nth-child(1) { transform: scale(1.02); opacity: .42; }
 .dsh-ink-glow i:nth-child(2) { transform: scale(1.05); opacity: .35; }

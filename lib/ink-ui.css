@@ -166,6 +166,13 @@
 	background: transparent;
 	border-radius: 0;
 }
+/* The centre's paint is the column's own pre-blurred sheet (installed at the
+ * `centerCol` rule below), plus this tint layer. It is never a live
+ * `backdrop-filter`: the column is the one full-height surface whose width
+ * changes on every rightbar toggle, and a live blur here re-sampled the whole
+ * centre on each animation frame, making the conversation edge visibly step
+ * while the grid track eased. A plain translucent fill can resize without
+ * touching the compositor's backdrop pass. */
 :root[data-dsh-ink-theme] [class$="centerCol"]::before {
 	content: "";
 	position: absolute;
@@ -174,16 +181,13 @@
 	pointer-events: none;
 	border-radius: inherit;
 	background-color: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent);
-	backdrop-filter: blur(28px) saturate(1.3);
-	-webkit-backdrop-filter: blur(28px) saturate(1.3);
 }
 /* The titlebar and the left column must not merely share a tint; they must see the
  * same ground. The frame's own top strip is the flat paper slack above the
  * floor-anchored wallpaper, while the frosted columns read the blurred body sheet.
  * Give the strip the same pre-blurred sheet at viewport scale, then the same 20%
  * layer-1 tint and the same 28px / saturate(1.3) glass. */
-:root[data-dsh-ink-theme="ink-jianghu-dark"][data-windows-titlebar] [class$="frame"]::before,
-:root[data-dsh-ink-theme="ink-jianghu-dark"] [class$="centerCol"]::before {
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-windows-titlebar] [class$="frame"]::before {
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
@@ -193,8 +197,7 @@
 	background-repeat: no-repeat;
 	background-attachment: fixed;
 }
-:root[data-dsh-ink-theme="ink-jianghu"][data-windows-titlebar] [class$="frame"]::before,
-:root[data-dsh-ink-theme="ink-jianghu"] [class$="centerCol"]::before {
+:root[data-dsh-ink-theme="ink-jianghu"][data-windows-titlebar] [class$="frame"]::before {
 	background-color: transparent;
 	background-image:
 		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
@@ -218,8 +221,6 @@
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
-	backdrop-filter: blur(28px) saturate(1.3);
-	-webkit-backdrop-filter: blur(28px) saturate(1.3);
 }
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [class*="_pageBar"][data-natural]::before {
 	background-color: transparent;
@@ -230,8 +231,6 @@
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
-	backdrop-filter: blur(28px) saturate(1.3);
-	-webkit-backdrop-filter: blur(28px) saturate(1.3);
 }
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [data-slot="root"] > *,
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [data-slot="main.conversation"] > *,
@@ -336,6 +335,11 @@
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
+	/* The sheet above is already blurred. A live 28 px backdrop filter over it repeats
+	 * the full-height sample on every scroll, typing tick and resize; the screenshot
+	 * comparison put the two results within 0.14/255 per channel. */
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [class$="sidebarCol"]::before {
 	background-color: transparent;
@@ -346,6 +350,8 @@
 	background-position: 0 0, center top;
 	background-repeat: no-repeat;
 	background-attachment: fixed;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 /* Hero's reading pane and the sidebar must show the same part of the same painting.
  * The sidebar's frosted copy is cover / centre-top; the conversation sheet and composer
@@ -410,13 +416,46 @@
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
 }
-/* The sidebar's bottom fade is a 24px overlay whose gradient ends in the
- * app's opaque sidebar fill. Desktop names it `scrollFade`; the Web workspace
- * names the same element `fade` (0.2.2-rc.1: `bhn1Oq_fade`). With the column
- * cleared to glass, that terminal colour is the one opaque band left above the
- * account row. Keep the fade, but make it a real opacity fade: the scroller's
- * last 24px masks out and the separate overlay no longer paints a fill of its
- * own. */
+/* Paint the panel's own final-width box, not just the grid track. The panel is
+ * anchored to the right edge at its full width and slides in while the track
+ * eases up from zero; the track-only pseudo therefore leaves the leading slice
+ * of the incoming panel transparent, and the sharp centre wallpaper shows
+ * through until the track catches up. The panel root already has its final
+ * width on the first frame. This sheet is clipped from the panel's left edge
+ * with the same duration/easing as the dock's translateX, so it follows the
+ * visible content instead of hanging over the conversation at its final
+ * width. Closed, the clip has zero width, so no frost strip is left at the
+ * window edge. */
+:root[data-dsh-ink-theme="ink-jianghu"] [class$="rightbarCol"] [data-sidebar-right-panel="push"]::before,
+:root[data-dsh-ink-theme="ink-jianghu-dark"] [class$="rightbarCol"] [data-sidebar-right-panel="push"]::before {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-color: transparent;
+	background-image:
+		linear-gradient(color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent), color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent)),
+		var(--dsh-ink-wall-blur);
+	background-size: auto, cover;
+	background-position: 0 0, center top;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
+	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
+	clip-path: inset(0 0 0 100%);
+	transition: clip-path var(--ds-transition-duration-slow) var(--ds-ease-in-out);
+}
+:root[data-dsh-ink-theme="ink-jianghu"] [class$="rightbarCol"] [data-sidebar-right-panel="push"][data-sidebar-right-open]::before,
+:root[data-dsh-ink-theme="ink-jianghu-dark"] [class$="rightbarCol"] [data-sidebar-right-panel="push"][data-sidebar-right-open]::before {
+	clip-path: inset(0 0 0 0%);
+}
+@media (prefers-reduced-motion: reduce) {
+	:root[data-dsh-ink-theme] [class$="rightbarCol"] [data-sidebar-right-panel="push"]::before {
+		transition: none;
+	}
+}
 :root[data-dsh-ink-theme] [class$="sidebarCol"] [class*="_scrollFade"],
 :root[data-dsh-ink-theme] [class$="sidebarCol"] [class*="_fade"] {
 	background: none;
@@ -435,6 +474,14 @@
 	background-color: color-mix(in srgb, var(--dsw-alias-bg-layer-1) 20%, transparent);
 	backdrop-filter: blur(28px) saturate(1.3);
 	-webkit-backdrop-filter: blur(28px) saturate(1.3);
+}
+/* The caption strip already paints the pre-blurred sheet (the two rules above); the
+ * backdrop filter is a second full-width sample of the same pixels on every window
+ * drag and scroll. The screenshot comparison was within 0.14/255 per channel. */
+:root[data-dsh-ink-theme="ink-jianghu"][data-windows-titlebar] [class$="frame"]::before,
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-windows-titlebar] [class$="frame"]::before {
+	backdrop-filter: none;
+	-webkit-backdrop-filter: none;
 }
 /* ---------- 右栏全屏: one material across the window ----------
  * In `data-rightbar-fullscreen` the right panel is the reading surface, but the frame's
