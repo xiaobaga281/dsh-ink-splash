@@ -70,6 +70,14 @@
 	--dsh-ink-wall-top: #191919;
 	--dsh-ink-wall-body: #191919;
 }
+/* All four wallpapers are 1.751:1. `cover` is still the right size, but its box is the
+ * element. The frame animates `grid-template-columns`, so the centre sheet's box is the
+ * moving track. `max(100vw, 175.1vh)` is the same cover size resolved only against the
+ * viewport: a column change then clips the sheet instead of becoming its image's sizing
+ * box. Used only by the three column surfaces; the cards keep their existing glass. */
+:root[data-dsh-ink-theme] {
+	--dsh-ink-wall-cover: max(100vw, 175.1vh);
+}
 :root[data-dsh-ink-theme] body {
 	background-color: var(--dsh-ink-wall-body);
 	background-image:
@@ -367,6 +375,20 @@
 	background-size: auto, auto, cover;
 	background-position: 0 0, 0 0, center top;
 }
+/* The hero reading sheet keeps the same viewport-cover crop, but the size is pinned to
+ * the viewport rather than re-derived from the sheet's changing track box. */
+:root[data-dsh-ink-theme="ink-jianghu"][data-dsh-ink-art="hero"] [data-slot="main.conversation"] > *,
+:root[data-dsh-ink-theme="ink-jianghu-dark"][data-dsh-ink-art="hero"] [data-slot="main.conversation"] > * {
+	background-size: auto, auto, var(--dsh-ink-wall-cover) auto;
+}
+/* The whale reading sheet was the one column surface still sized by a percentage
+ * (`100% auto`) while the frame animates `grid-template-columns` for every column
+ * change. Pin its width to the viewport: the track then only clips the sheet, it
+ * never becomes the image's sizing box, so the painting cannot rescale under the
+ * easing edge. Hero already uses the viewport-cover crop above. */
+:root[data-dsh-ink-theme][data-dsh-ink-art="whale"] [data-slot="main.conversation"] > * {
+	background-size: auto, auto, 100vw auto;
+}
 
 /* The square outside the sheet's 28px arc is the centre column's own ground, not a
  * separate patch: paint that ground with the exact sidebar sheet and tint. The
@@ -446,6 +468,7 @@
 	box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
 	clip-path: inset(0 0 0 100%);
 	transition: clip-path var(--ds-transition-duration-slow) var(--ds-ease-in-out);
+	will-change: clip-path;
 }
 :root[data-dsh-ink-theme="ink-jianghu"] [class$="rightbarCol"] [data-sidebar-right-panel="push"][data-sidebar-right-open]::before,
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [class$="rightbarCol"] [data-sidebar-right-panel="push"][data-sidebar-right-open]::before {
@@ -454,6 +477,7 @@
 @media (prefers-reduced-motion: reduce) {
 	:root[data-dsh-ink-theme] [class$="rightbarCol"] [data-sidebar-right-panel="push"]::before {
 		transition: none;
+		will-change: auto;
 	}
 }
 :root[data-dsh-ink-theme] [class$="sidebarCol"] [class*="_scrollFade"],
@@ -517,6 +541,18 @@
 :root[data-dsh-ink-theme="ink-jianghu-dark"] [data-rightbar-fullscreen] [class*="_tabHost_"]::before {
 	backdrop-filter: none;
 	-webkit-backdrop-filter: none;
+}
+
+/* The three column surfaces are viewport-cover-sized, not element-cover-sized. When
+ * the frame's grid track eases, the surface's own box changes; this size does not, so
+ * the compositor clips an already-decoded viewport sheet instead of scaling it. The
+ * card glasses below are outside this rule and are untouched. */
+:root[data-dsh-ink-theme] [class$="sidebarCol"]::before,
+:root[data-dsh-ink-theme] [class$="rightbarCol"]::before,
+:root[data-dsh-ink-theme] [class$="centerCol"],
+:root[data-dsh-ink-theme] [data-rightbar-fullscreen] [class*="_tabHost_"]::before,
+:root[data-dsh-ink-theme] [class$="rightbarCol"] [data-sidebar-right-panel="push"]::before {
+	background-size: auto, var(--dsh-ink-wall-cover) auto;
 }
 
 /* The specular edge is for the margin sheets only. The pseudo-element is a square layer

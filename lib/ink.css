@@ -4,7 +4,7 @@
  *
  * Placeholders the Host substitutes:
  *   {{EXIT}}  fade-out length in ms
- *   {{CLOCK}} prelude clock length in ms (the nominal duration the user set)
+ *   {{CLOCK}} prelude clock length in ms (the album film's nominal length)
  *
  * Nothing on screen reads the master property any more: every mover is a keyframe
  * animation of transform or opacity, so the compositor carries the whole stroke while
@@ -101,27 +101,6 @@
 	animation: dsh-ink-scene-x calc(var(--dsh-ink-dur) * .526) linear calc(var(--dsh-ink-dur) * .06) both;
 	will-change: transform, opacity;
 }
-/* The background is the user's clip. It sits *inside* the scene, above the still that
- * `--dsh-ink-bg` paints, and is only faded in once the element reports `playing` — so a
- * machine that cannot decode it keeps the picture instead of a black rectangle. The ramp
- * is opacity on the child, never a filter: a runtime blur over a full-window layer
- * re-rasterises during the one moment the main thread is busiest. */
-.dsh-ink-movie {
-	position: absolute; inset: 0;
-	display: block; width: 100%; height: 100%;
-	object-fit: cover; object-position: center;
-	opacity: 0;
-	transition: opacity calc(var(--dsh-ink-dur) * .1) linear;
-	pointer-events: none;
-}
-.dsh-ink-root[data-movie="playing"] .dsh-ink-movie { opacity: 1; }
-/* The clip ran out and no mover was available to take the tail. Dissolve onto the shipped
- * still — the same painting — rather than looping the opening animation, which is not a
- * thing an opening animation should do. */
-.dsh-ink-root[data-tail="still"] .dsh-ink-movie { opacity: 0; }
-@media (prefers-reduced-motion: reduce) {
-	.dsh-ink-movie { display: none; }
-}
 /* The whole splash as one file. When the axes have a film, this layer is the animation:
  * the breathing mark, the dot, the stroke and the blooming painting were all rendered once
  * and are now decoded, so the boot pays a video frame instead of a dozen choreographed
@@ -155,37 +134,14 @@
 	display: none !important;
 }
 
-/* The regenerated whale films are painted from the clean full-body stills, so they
- * carry no baked DeepSeek lettering. Keep the live wordmark above the film instead of
- * asking the video model to invent lettering; it stays the same ink, mask and axis
- * animation as the rest of the splash. */
-/* Hero's film already carries the painted DeepSeek lettering at its own 2.2 s beat.
- * Keep the live word out until the film has passed the whale-gated 2.0 s clean frame;
- * then the film freezes on that word-free painting and the live word is restarted by
- * `data-filmhandoff`, so the letters animate after the whale has left instead of
- * popping in baked. The whale films keep their own gated live wordmark. */
-.dsh-ink-root[data-splash=film]:not([data-art=whale]):not([data-filmhandoff="1"]) .dsh-ink-word { display: none; }
-.dsh-ink-root[data-splash=film][data-filmhandoff="1"] .dsh-ink-word {
-	display: block;
-	z-index: 1;
-	animation: dsh-ink-wet 1.15s linear both !important;
-}
-.dsh-ink-root[data-splash=film][data-filmhandoff="1"] .dsh-ink-word::after {
-	animation: dsh-ink-word-cover 1.15s cubic-bezier(.5, 0, .5, 1) both !important;
-}
+/* The live whale word is a fallback only: a refused file has no baked lettering, so the
+ * error branch in client.js sets `data-wordstart` and the live lettering wipes in. While
+ * a film plays, the `data-filmword=baked` rule above hides it entirely. */
 .dsh-ink-root[data-splash=film] .dsh-ink-film { z-index: 0; }
-.dsh-ink-root[data-splash=film]:not([data-filmhandoff="1"]) .dsh-ink-word,
-.dsh-ink-root[data-splash=film][data-art=whale] .dsh-ink-word { display: block; z-index: 1; }
 /* The whale head uses the live mark for its outline; keep the live lettering out of that
- * intro: it starts only after the film itself has passed the mark, so the order is
- * mark → mark gone → painting + wordmark. The timestamp is applied by
- * client.js from `film.currentTime`, never from page-mount time: a late video start
- * must not let the letters overtake the icon. The rule is not limited to film mode:
- * while the video is still decoding, the live fallback must keep its letters hidden too.
- *
- * The generic `dsh-ink-wet` ramp starts at page mount; it is cancelled with !important,
- * because an animation beats a normal opacity declaration and it was the 0.25-opacity
- * ghost that appeared before the mark had left. */
+ * intro until the fallback sets the marker. The generic `dsh-ink-wet` ramp starts at page
+ * mount and is cancelled with !important, because an animation beats a normal opacity
+ * declaration and it was the 0.25-opacity ghost that appeared before the mark had left. */
 .dsh-ink-root[data-art=whale] .dsh-ink-word {
 	opacity: 0;
 	clip-path: inset(0 100% 0 0);

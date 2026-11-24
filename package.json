@@ -1,7 +1,7 @@
 {
   "name": "dsh-ink-splash",
-  "version": "0.4.1",
-  "description": "水墨开屏动画与配套主题：四段十秒成片（侠客/鲸娘 × 夜山/宣纸），保留原片背景音；设置只选画面与主题。",
+  "version": "0.4.2",
+  "description": "水墨开屏动画与配套主题：四段十秒成片（侠客/鲸娘 × 夜山/宣纸），保留原片背景音；设置只选画面、主题与壁纸亮度。",
   "type": "module",
   "main": "lib/index.js",
   "exports": {

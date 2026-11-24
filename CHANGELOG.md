@@ -1,5 +1,13 @@
 # 变更记录
 
+## 0.4.2（2026-11-24）
+
+- 开屏起播：影片在首帧 `palette()` 设完 `src` 后立即尝试 `play()`，`appendChild` 后再补一次；优先带声音，自动播放被拒时先静音起播，首次指针或键盘手势恢复原声。`#wakeFilmAudio` / `#armFilmAudioWake` 覆盖同步抛错、视频已卸载、已结束视频等边界；`.boot.json` 的 film 行新增 `start=playing/muted/blocked` 诊断。
+- 成片时钟：固定为 10 秒（`FILM_NOMINAL_MS = 10100`），设置页移除重播时长；开屏不再等旧的 CSS 静默门控，影片成为唯一开屏时间线。
+- 三栏背景：壁纸为 1.751:1，左栏、中栏、右栏的 cover 尺寸改为按视口解析的 `max(100vw, 175.1vh) auto`；`grid-template-columns` 过渡时只改变裁剪，不按栏宽重算图片尺寸。右栏 push 的 `clip-path` 过渡补 `will-change`，减少切入/切出的合成抖动。
+- 目录整理：删除 `docs/promo-0.3.7` 六张旧宣传图；保留 README 与 `screenshots.json` 引用的 `docs/hero.jpg`、`docs/night.jpg`、`docs/xuan.jpg`；发布目录只保留当前版本包。
+- 包：版本 0.4.2，四段 `album-v5` 影片、资产路由与既有材质不变；发布包未包含 `.boot.json`、`.injects.ndjson`、`docs` 与 `release`。
+
 ## 0.4.1（2026-11-22）
 
 - 开屏动画优化：四段十秒成片改为 1440p / 60 fps / H.264 CRF15，保留原 AAC 背景音；影片名切到 `album-v5`，避免 DSH 的 immutable 资产缓存继续命中旧 4K 影片。四段合计约 64.3 MiB，整包约 72.2 MiB。
